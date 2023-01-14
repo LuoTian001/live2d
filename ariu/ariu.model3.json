@@ -1,0 +1,29 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "ariu.moc3",
+		"Textures": [
+			"Textures/texture_00.png",
+			"Textures/texture_01.png",
+			"Textures/texture_02.png",
+			"Textures/texture_03.png"
+		],
+		"Physics": "ariu.physics3.json",
+		"DisplayInfo": "ariu.cdi3.json"
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": []
+		},
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		}
+	]
+}
