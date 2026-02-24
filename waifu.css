@@ -32,6 +32,8 @@
 	transform: translateY(3px);
 	transition: transform .3s ease-in-out, bottom 3s ease-in-out;
 	z-index: 10;
+	will-change: transform;
+	transform: translateZ(0);
 }
 
 #waifu:hover {
