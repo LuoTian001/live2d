@@ -1,8 +1,8 @@
 {
-	"mouseover": [
+"mouseover": [
     {
         "selector": "#live2d",
-        "text": ["干嘛呢你，快把手拿开～～", "鼠…鼠标放错地方了！", "你要干嘛呀？", "喵喵喵？", "怕怕(ノ≧∇≦)ノ", "非礼呀！救命！", "这样的话，只能使用武力了！", "我要生气了哦", "不要动手动脚的！", "真…真的是不知羞耻！", "Hentai！"]
+        "text": ["干嘛呢你，快把手拿开～", "鼠…鼠标放错地方了！", "你要干嘛呀？", "喵喵喵？", "怕怕(ノ≧∇≦)ノ", "非礼呀！救命！", "这样的话，只能使用武力了！", "我要生气了哦", "不要动手动脚的！", "真…真的是不知羞耻！", "Hentai！"]
     },
     {
         "selector": "#site-name",
@@ -27,6 +27,54 @@
     {
         "selector": ".menus_item a[href='/categories/']",
         "text": ["文章都分类好啦～", "来看看都有哪些分类吧~"]
+    },
+    {
+        "selector": ".menus_item a[href='/timeline/']",
+        "text": ["来看看主人的日常日志吧！", "记录生活的点点滴滴～"]
+    },
+    {
+        "selector": ".menus_item a[href='/photos/']",
+        "text": ["要看看主人的相册吗？", "这里有很多珍贵的照片哦！"]
+    },
+    {
+        "selector": ".menus_item a[href='/music/']",
+        "text": ["一起听听音乐放松一下吧？", "来看看主人最近在单曲循环什么歌~"]
+    },
+    {
+        "selector": ".menus_item a[href='/game/arisu/index.html']",
+        "text": ["要一起玩邦邦卡邦吗？", "居然被你发现了隐藏的游戏模块！"]
+    },
+    {
+        "selector": ".menus_item a[href='/messageboard/']",
+        "text": ["有什么想对主人说的吗？去留言板看看吧！", "在这里留下你的足迹吧~"]
+    },
+    {
+        "selector": ".menus_item a[href='/tools/']",
+        "text": ["这里是主人的百宝箱哦！", "好多实用的小工具呀~"]
+    },
+    {
+        "selector": ".menus_item a[href='/tools/ocrlatex/']",
+        "text": ["遇到复杂的公式？用这个神器识别看看！"]
+    },
+    {
+        "selector": ".menus_item a[href='/tools/translate/']",
+        "text": ["外语看不懂？快让翻译工具来帮忙！"]
+    },
+    {
+        "selector": ".menus_item a[href='/tools/splitter/']",
+        "text": ["朋友圈九宫格发图神器在这！"]
+    },
+    {
+        "selector": ".menus_item a[href='/tools/img-style/']",
+        "text": ["想把图片换个酷炫的风格吗？"]
+    },
+    {
+        "selector": ".menus_item a[href='/tools/qrcode/']",
+        "text": ["二维码制作与解析，一键搞定！"]
+    },
+    {
+        "selector": ".menus_item a[href='/flink/']",
+        "text": ["去拜访一下主人的好朋友们吧！", "这些都是主人的小伙伴哦~"]
     },
     {
         "selector": ".avatar-img",
