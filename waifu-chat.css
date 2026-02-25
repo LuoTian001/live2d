@@ -1,9 +1,8 @@
-/* 对话框主体：半透明毛玻璃效果与暗黑模式适配 */
 #waifu-chat-box {
     display: none;
     position: absolute;
     bottom: 320px;
-    left: 0;
+    right: 0; 
     width: 320px;
     background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(8px);
@@ -14,7 +13,10 @@
     flex-direction: column;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.3);
-    transition: background-color 0.3s, border-color 0.3s;
+    transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.0),
+                transform 0.4s ease-out,
+                background-color 0.3s, border-color 0.3s;
+    transform-origin: bottom right;
 }
 
 [data-theme="dark"] #waifu-chat-box {
@@ -23,8 +25,7 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
-/* 顶部操作栏：包含历史记录管理 */
-.waifu-chat-header {
+#waifu-chat-box .waifu-chat-header {
     padding: 10px 15px;
     background: rgba(0, 0, 0, 0.03);
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -33,20 +34,19 @@
     align-items: center;
 }
 
-[data-theme="dark"] .waifu-chat-header {
+[data-theme="dark"] #waifu-chat-box .waifu-chat-header {
     background: rgba(255, 255, 255, 0.05);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     color: #eee;
 }
 
-.waifu-chat-btn {
+#waifu-chat-box .waifu-chat-btn {
     font-size: 12px;
     cursor: pointer;
     color: #007bff;
     user-select: none;
 }
 
-/* 聊天内容区：滚动与叠加问题修复 */
 #waifu-chat-history {
     height: 240px;
     overflow-y: auto;
@@ -55,6 +55,7 @@
     flex-direction: column;
     gap: 12px;
     scrollbar-width: thin;
+    transition: height 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.0);
 }
 
 #waifu-chat-history::-webkit-scrollbar {
@@ -65,15 +66,15 @@
     border-radius: 4px;
 }
 
-/* Telegram 风格聊天气泡 */
-.chat-msg {
+/* 气泡布局隔离 */
+#waifu-chat-box .waifu-chat-msg {
     display: flex;
     width: 100%;
 }
-.chat-msg.user { justify-content: flex-end; }
-.chat-msg.ai { justify-content: flex-start; }
+#waifu-chat-box .waifu-chat-msg.waifu-msg-user { justify-content: flex-end; }
+#waifu-chat-box .waifu-chat-msg.waifu-msg-ai { justify-content: flex-start; }
 
-.chat-bubble {
+#waifu-chat-box .waifu-chat-bubble {
     max-width: 85%;
     padding: 8px 12px;
     border-radius: 12px;
@@ -83,36 +84,34 @@
     white-space: pre-wrap;
 }
 
-.chat-msg.user .chat-bubble {
+#waifu-chat-box .waifu-chat-msg.waifu-msg-user .waifu-chat-bubble {
     background: #007bff;
     color: #fff;
-    border-bottom-right-radius: 2px; /* 模拟气泡尾巴 */
+    border-bottom-right-radius: 2px;
 }
 
-.chat-msg.ai .chat-bubble {
+#waifu-chat-box .waifu-chat-msg.waifu-msg-ai .waifu-chat-bubble {
     background: #f1f0f0;
     color: #333;
     border-bottom-left-radius: 2px;
 }
 
-[data-theme="dark"] .chat-msg.ai .chat-bubble {
+[data-theme="dark"] #waifu-chat-box .waifu-chat-msg.waifu-msg-ai .waifu-chat-bubble {
     background: #3a3a3a;
     color: #eee;
 }
 
-/* 底部输入框容器 */
-.chat-input-container {
+#waifu-chat-box .waifu-input-container {
     padding: 10px;
     background: rgba(255, 255, 255, 0.5);
     border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-[data-theme="dark"] .chat-input-container {
+[data-theme="dark"] #waifu-chat-box .waifu-input-container {
     background: rgba(0, 0, 0, 0.2);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* 自动换行输入框 */
 #waifu-chat-input {
     width: 100%;
     box-sizing: border-box;
@@ -121,8 +120,8 @@
     border-radius: 8px;
     outline: none;
     font-size: 13px;
-    resize: none;          /* 禁用手动拉伸 */
-    overflow-y: hidden;    /* 隐藏内部滚动条 */
+    resize: none;
+    overflow-y: hidden;
     min-height: 36px;
     max-height: 120px;
     background: rgba(255, 255, 255, 0.8);
@@ -140,11 +139,118 @@
     color: #eee;
 }
 
+/* 按钮颜色控制 */
 #waifu-tool span svg {
-    fill: #007bff; /* 浅色模式：蓝色 */
+    fill: #66d0fa;
     transition: fill 0.3s;
 }
 
 [data-theme="dark"] #waifu-tool span svg {
-    fill: #000000; /* 暗黑模式：黑色 (依需求强制设为纯黑) */
+    fill: #ccccccda; 
+}
+
+/* 顶部操作栏工具组 */
+#waifu-chat-box .waifu-chat-tools {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+#waifu-chat-box .waifu-chat-tools svg {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    fill: #666;
+    transition: fill 0.2s, transform 0.2s;
+}
+
+#waifu-chat-box .waifu-chat-tools svg:hover {
+    fill: #007bff;
+    transform: scale(1.1);
+}
+
+[data-theme="dark"] #waifu-chat-box .waifu-chat-tools svg {
+    fill: #aaa;
+}
+
+[data-theme="dark"] #waifu-chat-box .waifu-chat-tools svg:hover {
+    fill: #4da3ff;
+}
+
+/* 放大状态覆盖样式 */
+#waifu-chat-box.waifu-chat-maximized {
+    width: 450px;
+    bottom: 50px;
+    /* 若需向上延伸，可相应增加 bottom 值，例如 bottom: 50px */
+}
+
+#waifu-chat-box.waifu-chat-maximized #waifu-chat-history {
+    height: 450px;
+}
+
+/* 清除默认段落边距 */
+#waifu-chat-box .waifu-chat-bubble p {
+    margin: 0 0 8px 0;
+}
+#waifu-chat-box .waifu-chat-bubble p:last-child {
+    margin: 0;
+}
+
+/* 行内代码样式 */
+#waifu-chat-box .waifu-chat-bubble code {
+    background: rgba(0, 0, 0, 0.08);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 0.9em;
+}
+
+[data-theme="dark"] #waifu-chat-box .waifu-chat-bubble code {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* 多行代码块样式 */
+#waifu-chat-box .waifu-chat-bubble pre {
+    background: #2d2d2d;
+    color: #ccc;
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 12px;
+    margin: 8px 0;
+    scrollbar-width: thin;
+}
+
+[data-theme="dark"] #waifu-chat-box .waifu-chat-bubble pre {
+    background: #1e1e1e;
+}
+
+/* 清除代码块内 code 标签的背景色 */
+#waifu-chat-box .waifu-chat-bubble pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+}
+
+/* 列表缩进适配 */
+#waifu-chat-box .waifu-chat-bubble ul, 
+#waifu-chat-box .waifu-chat-bubble ol {
+    padding-left: 20px;
+    margin: 0 0 8px 0;
+}
+
+/* 链接样式 */
+#waifu-chat-box .waifu-chat-bubble a {
+    color: #007bff;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0, 123, 255, 0.3);
+}
+
+#waifu-chat-box .waifu-chat-bubble a:hover {
+    border-bottom: 1px solid #007bff;
+}
+
+[data-theme="dark"] #waifu-chat-box .waifu-chat-bubble a {
+    color: #4da3ff;
+    border-bottom-color: rgba(77, 163, 255, 0.3);
 }
