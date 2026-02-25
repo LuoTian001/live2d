@@ -6,39 +6,39 @@
     },
     {
         "selector": "#site-name",
-        "text": ["点击这里可以回到主页哦！", "这可是主人的门面呢！"]
+        "text": ["点击这里可以回到主页哦！", "这可是主人的门面呢！", "喜欢这个名字吗？"]
     },
     {
         "selector": "#search-button",
-        "text": ["找不到想看的内容？搜索看看吧！", "在找什么东西呢，需要帮忙吗？"]
+        "text": ["找不到想看的内容？搜索看看吧！", "在找什么东西呢，需要帮忙吗？", "输入关键词就可以搜索了哦！"]
     },
     {
         "selector": ".menus_item a[href='/']",
-        "text": ["点它可以回到首页啦！", "想回到上一页可以使用浏览器的后退功能哦。"]
+        "text": ["点它可以回到首页啦！", "想回到上一页可以使用浏览器的后退功能哦。", "这是主人的小窝哦，欢迎常来玩！"]
     },
     {
         "selector": ".menus_item a[href='/archives/']",
-        "text": ["文章目录都整理在这里啦！", "来看看主人的历史记录吧！"]
+        "text": ["文章目录都整理在这里啦！", "来看看主人的历史记录吧！", "这里有主人的全部文章哦！"]
     },
     {
         "selector": ".menus_item a[href='/tags/']",
-        "text": ["点击就可以看文章的标签啦！", "来看看都有哪些标签吧~"]
+        "text": ["点击就可以看文章的标签啦！", "来看看都有哪些标签吧~", "标签可以帮你找到相关的文章哦！"]
     },
     {
         "selector": ".menus_item a[href='/categories/']",
-        "text": ["文章都分类好啦～", "来看看都有哪些分类吧~"]
+        "text": ["文章都分类好啦～", "来看看都有哪些分类吧~", "点击分类可以查看相关的文章哦！"]
     },
     {
         "selector": ".menus_item a[href='/timeline/']",
-        "text": ["来看看主人的日常日志吧！", "记录生活的点点滴滴～"]
+        "text": ["来看看主人的日常日志吧！", "记录生活的点点滴滴～", "这里有主人的成长历程哦！"]
     },
     {
         "selector": ".menus_item a[href='/photos/']",
-        "text": ["要看看主人的相册吗？", "这里有很多珍贵的照片哦！"]
+        "text": ["要看看主人的相册吗？", "这里有很多珍贵的照片哦！", "来看看主人的生活照吧！"]
     },
     {
         "selector": ".menus_item a[href='/music/']",
-        "text": ["一起听听音乐放松一下吧？", "来看看主人最近在单曲循环什么歌~"]
+        "text": ["一起听听音乐放松一下吧？", "来看看主人最近在单曲循环什么歌~", "音乐是治愈心灵的良药哦！"]
     },
     {
         "selector": ".menus_item a[href='/game/arisu/index.html']",
@@ -50,15 +50,15 @@
     },
     {
         "selector": ".menus_item a[href='/tools/']",
-        "text": ["这里是主人的百宝箱哦！", "好多实用的小工具呀~"]
+        "text": ["这里是主人的百宝箱哦！", "好多实用的小工具呀~", "来看看有什么好玩的工具吧！"]
     },
     {
         "selector": ".menus_item a[href='/tools/ocrlatex/']",
-        "text": ["遇到复杂的公式？用这个神器识别看看！"]
+        "text": ["遇到复杂的公式？用这个神器识别看看！", "拍照上传就能得到 LaTeX 代码了哦！"]
     },
     {
         "selector": ".menus_item a[href='/tools/translate/']",
-        "text": ["外语看不懂？快让翻译工具来帮忙！"]
+        "text": ["外语看不懂？快让翻译工具来帮忙！", "支持多种语言互译哦！"]
     },
     {
         "selector": ".menus_item a[href='/tools/splitter/']",
@@ -66,11 +66,15 @@
     },
     {
         "selector": ".menus_item a[href='/tools/img-style/']",
-        "text": ["想把图片换个酷炫的风格吗？"]
+        "text": ["想把图片换个酷炫的风格吗？", "一键转换，快来试试吧！"]
     },
     {
         "selector": ".menus_item a[href='/tools/qrcode/']",
-        "text": ["二维码制作与解析，一键搞定！"]
+        "text": ["二维码制作与解析，一键搞定！", "快来生成属于你的专属二维码吧！"]
+    },
+    {
+        "selector": ".menus_item a[href='/tools/base64/']",
+        "text": ["Base64 编码和解码工具，方便又实用！"]
     },
     {
         "selector": ".menus_item a[href='/flink/']",
