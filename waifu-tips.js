@@ -119,6 +119,16 @@
     }
 
     var U = {
+        chat: {
+            icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M123.6 391.3c12.9-9.4 29.6-11.8 44.6-6.4c26.5 9.6 56.2 15.1 87.8 15.1c124.7 0 208-80.5 208-160s-83.3-160-208-160S48 160.5 48 240c0 32 12.4 62.8 35.7 89.2c8.6 9.7 12.8 22.5 11.8 35.5c-1.4 18.1-5.7 34.7-11.3 49.4c17-7.9 31.1-16.7 39.4-22.8zM0 240C0 133.9 114.6 48 256 48s256 85.9 256 192s-114.6 192-256 192c-37.1 0-72.3-6.4-104.1-17.9c-11.9 8.7-31.3 20.6-54.3 30.6C73.6 471.1 44.7 480 16 480c-6.5 0-12.3-3.9-14.8-9.9c-2.5-6-1.1-12.8 3.4-17.4z"/></svg>',
+            callback: () => {
+                if (window.live2dChatInstance) {
+                    window.live2dChatInstance.toggle();
+                } else {
+                    window.waifuShowMessage("聊天模块未加载", 3000, 10);
+                }
+            }
+        },
         hitokoto: { icon: y, callback: V },
         asteroids: {
             icon: M,
@@ -412,4 +422,5 @@
 
     window.initWidget = B;
     window.showWelcomeMessage = z;
+    window.waifuShowMessage = a;
 })();
