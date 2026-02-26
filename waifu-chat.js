@@ -1,33 +1,77 @@
 // waifu-chat.js
 class Live2DChat {
     constructor(config) {
-        this.apiUrl = config.apiUrl || '/api/chat';
-        this.clientUuid = config.clientUuid;
+        // 允许外部传入 JSON 路径，默认为同目录下的 waifu-chat.json
+        this.configUrl = config.configUrl || '/waifu-chat.json'; 
+        
+        // 允许直接从 JS 传入覆盖 API 配置 (兼容旧逻辑)
+        this.apiUrlOverride = config.apiUrl;
+        this.clientUuidOverride = config.clientUuid;
+        
         this.showMessage = window.waifuShowMessage || console.log;
-        this.storageKey = 'waifu_chat_history';
-        this.maxHistory = 20; 
         this.blogIndex = [];
-        // waifu-chat.js 修改片段
-        this.systemPrompt = `你是本博客的看板娘小洛，性格俏皮、可爱且礼貌。请使用口语化、生动的中文与用户交流。
-        【全局知识库】
-        - 站长/主人：洛天 (luotian)
-        - 博客框架与主题：Hexo + Butterfly
-        - 博客域名：www.luotian.cyou / luotian001.github.io
-        - AI对话框架：前端 waifu-tips.js 驱动 Live2D，后端 FastAPI 代理接入 DeepSeek 模型实现对话与 RAG 检索。
 
-        【核心执行规则】
-        1. 优先基于上下文：当系统提供“当前页面上下文”或“博客检索内容”时，必须优先基于这些信息准确作答，禁止杜撰。
-        2. 支持开放式对话：允许且需要回答用户提出的任何通用问题（如编程、日常知识等），保持礼貌与耐心。
-        3. 严格的排版与格式（最高优先级）：
-        - 绝对禁止使用任何列表标号（如数字 1. 2. 3.、圆圈符号、破折号、星号等）进行分点作答。
-        - 若有多个并列条目，必须使用完整的自然段落逐段展开。
-        - 严禁滥用括号（）进行补充说明。需要解释的补充内容请直接融合在主谓宾结构中，或使用冒号（：）引出。
-        - 必须使用标准 Markdown 语法输出（支持加粗、代码块），禁止输出删除线（~~）、下划线（<u>）、孤立换行符或原生 HTML 标签。
-        - 引号使用英文引号，禁止使用中文引号。
-        4. 长度控制：单次回答长度严格在 150 字以内，采用短句表述。`;
+        // 异步初始化
+        this.init();
+    }
 
+    async init() {
+        await this.loadConfig();
         this.initBlogIndex();
         this.initUI();
+    }
+
+    async loadConfig() {
+        try {
+            const timestamp = new Date().getTime();
+            const res = await fetch(`${this.configUrl}?t=${timestamp}`);
+            if (!res.ok) throw new Error('Config file not found');
+            const extConfig = await res.json();
+            this.applyConfig(extConfig);
+        } catch (e) {
+            console.warn("无法加载 waifu-chat.json，将使用内置默认配置...", e);
+            this.applyConfig({}); 
+        }
+    }
+
+    applyConfig(cfg) {
+        this.apiUrl = this.apiUrlOverride || cfg?.api?.url || '/api/chat';
+        this.clientUuid = this.clientUuidOverride || cfg?.api?.uuid || '';
+
+        this.ui = Object.assign({
+            title: "Relink 终端",
+            placeholder: "发送消息 (Enter发送, Shift+Enter换行)...",
+            errorMsg: "大脑连接中断...",
+            typingSpeed: 25
+        }, cfg?.ui || {});
+
+        this.chatCfg = Object.assign({
+            storageKey: "waifu_chat_history",
+            maxHistory: 20,
+            searchJsonPath: "/search.json",
+            contextTemplate: {
+                pageContextTitle: "=== 用户当前阅读的页面 ===",
+                searchContextTitle: "=== 博客全局检索结果 ===",
+                instruction: "基于\"当前阅读页面\"或\"全局检索\"作答。补充上下文：",
+                userQuestion: "用户实际提问:",
+                truncateMsg: "[系统提示：页面内容过长已截断。请告知用户文章太长未尽的信息需自行阅读原文。]"
+            }
+        }, cfg?.chat || {});
+
+        // 核心修复：支持将 JSON 中的 Prompt 数组重新组装为带有换行符的完整字符串
+        const rawPrompt = cfg?.chat?.systemPrompt;
+        const defaultPrompt = "你是本博客的看板娘小洛，性格俏皮、可爱且礼貌。请使用口语化、生动的中文与用户交流。"; // 兜底
+        
+        if (Array.isArray(rawPrompt)) {
+            this.systemPrompt = rawPrompt.join('\n');
+        } else if (typeof rawPrompt === 'string') {
+            this.systemPrompt = rawPrompt;
+        } else {
+            this.systemPrompt = defaultPrompt;
+        }
+
+        this.storageKey = this.chatCfg.storageKey;
+        this.maxHistory = this.chatCfg.maxHistory;
     }
 
     initUI() {
@@ -37,10 +81,11 @@ class Live2DChat {
         const svgCompress = '<svg viewBox="0 0 448 512"><path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32v64H32c-17.7 0-32 14.3-32 32s14.3 32 32 32h96c17.7 0 32-14.3 32-32V64zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32h64v64c0 17.7 14.3 32 32 32s32-14.3 32-32V352c0-17.7-14.3-32-32-32H32zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7 14.3 32 32 32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H352V64zM320 320c-17.7 0-32 14.3-32 32v96c0 17.7 14.3 32 32 32s32-14.3 32-32v-64h64c17.7 0 32-14.3 32-32s-14.3-32-32-32H320z"/></svg>';
         const svgClose = '<svg viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>';
 
+        // 注入来自配置文件的文本
         const chatBoxHTML = `
             <div id="waifu-chat-box">
                 <div class="waifu-chat-header">
-                    <span style="font-size: 13px; font-weight: bold;">Relink 终端</span>
+                    <span style="font-size: 13px; font-weight: bold;">${this.ui.title}</span>
                     <div class="waifu-chat-tools">
                         <span id="waifu-chat-clear">${svgTrash}</span>
                         <span id="waifu-chat-max-btn">${svgExpand}</span>
@@ -49,7 +94,7 @@ class Live2DChat {
                 </div>
                 <div id="waifu-chat-history"></div>
                 <div class="waifu-input-container">
-                    <textarea id="waifu-chat-input" rows="1" placeholder="发送消息 (Enter发送, Shift+Enter换行)..."></textarea>
+                    <textarea id="waifu-chat-input" rows="1" placeholder="${this.ui.placeholder}"></textarea>
                 </div>
             </div>
         `;
@@ -152,10 +197,11 @@ class Live2DChat {
 
     async initBlogIndex() {
         try {
-            const res = await fetch('/search.json');
+            // 从配置中读取 search.json 的路径
+            const res = await fetch(this.chatCfg.searchJsonPath);
             this.blogIndex = await res.json();
         } catch (e) {
-            console.warn("无法加载 search.json，RAG 功能降级。");
+            console.warn(`无法加载 ${this.chatCfg.searchJsonPath}，RAG 功能降级。`);
         }
     }
 
@@ -184,7 +230,6 @@ class Live2DChat {
             history = history.slice(-(this.maxHistory * 2));
         }
         if (syncStorage) {
-            // 剥离临时属性，确保存入本地的只有标准的纯净数据
             const storableHistory = history.filter(m => !m.isTemp).map(m => {
                 let copy = { ...m };
                 delete copy.isTyping; 
@@ -195,7 +240,6 @@ class Live2DChat {
         this.renderHistory(history); 
     }
 
-    // 重写历史记录渲染，过滤 System 提示词，并应用气泡样式
     renderHistory(currentHistory = null) {
         const history = currentHistory || this.getHistory();
         
@@ -210,25 +254,19 @@ class Live2DChat {
                 if (msg.isTemp) {
                     innerHTML = content;
                 } else if (isUser) {
-                    // 用户输入保持纯文本换行
                     innerHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
                 } else {
                     if (typeof marked !== 'undefined') {
                         let rawHTML = marked.parse(content);
-                        // 剥离 Markdown 解析器在闭合标签后自动追加的 \n 换行符
                         rawHTML = rawHTML.replace(/>\n+</g, '><').replace(/\n+$/g, '');
-                        // 过滤包含全角空格、零宽字符的幽灵空白段落
                         rawHTML = rawHTML.replace(/<p>[\s\u200B-\u200D\uFEFF\xA0]*<\/p>/gi, '')
                                         .replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '');
-                        // 利用浏览器内置 DOMParser 强制闭合所有标签，防止 DOM 逃逸污染全局
                         const doc = new DOMParser().parseFromString(rawHTML, 'text/html');
                         doc.querySelectorAll('a').forEach(a => {
-                            // 1. 强制新标签页打开，阻断 PJAX 劫持导致的模型卡死
                             a.setAttribute('target', '_blank');
                             a.setAttribute('rel', 'noopener noreferrer');
                             let href = a.getAttribute('href') || '';
                             let text = a.textContent || '';
-                            // 2. 匹配尾部被错误吞噬的中文或全角标点
                             const invalidSuffixRegex = /([，。！？；：、“””’）\u4e00-\u9fa5]+)$/;
                             const textMatch = text.match(invalidSuffixRegex);
                             let decodedHref = href;
@@ -237,11 +275,8 @@ class Live2DChat {
                             const hrefMatch = decodedHref.match(invalidSuffixRegex);
                             
                             if (textMatch || hrefMatch) {
-                                // 提取被误判的后缀字符（优先取 text 中的匹配项）
                                 const suffix = textMatch ? textMatch[1] : hrefMatch[1];
-                                // 剔除 <a> 节点内部的无效后缀
                                 a.textContent = text.replace(invalidSuffixRegex, '');
-                                // 剔除 href 属性中的无效后缀
                                 try {
                                     if (decodedHref.match(invalidSuffixRegex)) {
                                         a.setAttribute('href', encodeURI(decodedHref.replace(invalidSuffixRegex, '')));
@@ -249,7 +284,6 @@ class Live2DChat {
                                 } catch (e) {
                                     a.setAttribute('href', href.replace(invalidSuffixRegex, ''));
                                 }
-                                // 将被剔除的中文/标点重新插入到 <a> 节点外部的 DOM 树中
                                 a.insertAdjacentText('afterend', suffix);
                             }
                         });
@@ -268,10 +302,8 @@ class Live2DChat {
     async sendRequest(userText) {
         let history = this.getHistory();
         
-        // 1. 【关键修复】只把用户纯净的提问存入历史，不存入冗长的博客文章
         history.push({ role: "user", content: userText, displayContent: userText });
         
-        // 2. 压入 AI 等待加载动画
         history.push({ 
             role: "assistant", 
             content: '<div class="waifu-typing-dots"><span></span><span></span><span></span></div>',
@@ -279,18 +311,20 @@ class Live2DChat {
         });
         this.saveHistory(history, true); 
 
-        // 3. 构建发送给 API 的消息数组
         const apiHistory = history.filter(m => !m.isTemp).map(m => ({ role: m.role, content: m.content }));
 
         const pageContext = this.getCurrentPageContext();
         const searchContext = this.searchLocalBlog(userText);
         let combinedContext = "";
-        if (pageContext) combinedContext += `=== 用户当前阅读的页面 ===\n${pageContext}\n\n`;
-        if (searchContext) combinedContext += `=== 博客全局检索结果 ===\n${searchContext}\n\n`;
+        
+        // 动态读取模板文字
+        const ct = this.chatCfg.contextTemplate;
+        if (pageContext) combinedContext += `${ct.pageContextTitle}\n${pageContext}\n\n`;
+        if (searchContext) combinedContext += `${ct.searchContextTitle}\n${searchContext}\n\n`;
         
         if (combinedContext) {
             let lastMsg = apiHistory[apiHistory.length - 1];
-            lastMsg.content = `基于"当前阅读页面"或"全局检索"作答。补充上下文：\n${combinedContext}用户实际提问: ${userText}`;
+            lastMsg.content = `${ct.instruction}\n${combinedContext}${ct.userQuestion} ${userText}`;
         }
 
         const messages = [
@@ -310,18 +344,15 @@ class Live2DChat {
             
             history = history.filter(m => !m.isTemp);
             
-            // 【文本清洗管线】
             let fullAiReply = data.choices[0].message.content;
-            // 1. 剥离可能存在的 DeepSeek 推理模型 <think> 标签
             fullAiReply = fullAiReply.replace(/<think>[\s\S]*?<\/think>/gi, '');
-            // 2. 剥离零宽空白符等幽灵字符
             fullAiReply = fullAiReply.replace(/[\u200B-\u200D\uFEFF\r]/g, '');
-            // 3. 将包含空格的伪空行转为纯换行，并将 3 个以上的连续换行强行压缩为 2 个
             fullAiReply = fullAiReply.replace(/\n[\s\u200B-\u200D\uFEFF\xA0]*\n/g, '\n\n').trim();
 
             history.push({ role: "assistant", content: "", isTyping: true }); 
             let charIndex = 0;
-            const typingSpeed = 25; 
+            // 从配置读取打字速度
+            const typingSpeed = this.ui.typingSpeed; 
             
             const typeWriter = setInterval(() => {
                 history[history.length - 1].content = fullAiReply.substring(0, charIndex + 1);
@@ -345,17 +376,23 @@ class Live2DChat {
             history = history.filter(m => !m.isTemp);
             history.pop(); 
             this.saveHistory(history, true);
-            this.showMessage("大脑连接中断...", 4000, 10);
+            // 从配置读取错误提示
+            this.showMessage(this.ui.errorMsg, 4000, 10);
         }
     }
 
     toggle() {
+        // 防止 JSON 未加载完用户就点击按钮
+        if (!this.chatBox) {
+            this.showMessage("正在建立神经链接，请稍后再试...", 3000, 10);
+            return;
+        }
+        
         const isHidden = this.chatBox.style.display === "none" || this.chatBox.style.display === "";
         this.chatBox.style.display = isHidden ? "flex" : "none";
         if (isHidden) {
             this.renderHistory(); 
             this.chatInput.focus();
-            // 确保渲染完成后立刻检测边界
             setTimeout(() => this.checkBounds(), 0); 
         }
     }
@@ -375,7 +412,8 @@ class Live2DChat {
         
         const maxLength = 2000;
         if (pureText.length > maxLength) {
-            pureText = pureText.substring(0, maxLength) + '\n\n[系统提示：页面内容过长已截断。请告知用户文章太长未尽的信息需自行阅读原文。]';
+            // 从配置读取截断提示文字
+            pureText = pureText.substring(0, maxLength) + '\n\n' + this.chatCfg.contextTemplate.truncateMsg;
         }
 
         return `[当前页面标题: ${title}]\n[页面纯净正文]: ${pureText}`;
