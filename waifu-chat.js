@@ -213,16 +213,46 @@ class Live2DChat {
                     // 用户输入保持纯文本换行
                     innerHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
                 } else {
-                if (typeof marked !== 'undefined') {
+                    if (typeof marked !== 'undefined') {
                         let rawHTML = marked.parse(content);
-
+                        // 剥离 Markdown 解析器在闭合标签后自动追加的 \n 换行符
                         rawHTML = rawHTML.replace(/>\n+</g, '><').replace(/\n+$/g, '');
-                        
                         // 过滤包含全角空格、零宽字符的幽灵空白段落
                         rawHTML = rawHTML.replace(/<p>[\s\u200B-\u200D\uFEFF\xA0]*<\/p>/gi, '')
                                         .replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '');
-                        
+                        // 利用浏览器内置 DOMParser 强制闭合所有标签，防止 DOM 逃逸污染全局
                         const doc = new DOMParser().parseFromString(rawHTML, 'text/html');
+                        doc.querySelectorAll('a').forEach(a => {
+                            // 1. 强制新标签页打开，阻断 PJAX 劫持导致的模型卡死
+                            a.setAttribute('target', '_blank');
+                            a.setAttribute('rel', 'noopener noreferrer');
+                            let href = a.getAttribute('href') || '';
+                            let text = a.textContent || '';
+                            // 2. 匹配尾部被错误吞噬的中文或全角标点
+                            const invalidSuffixRegex = /([，。！？；：、“””’）\u4e00-\u9fa5]+)$/;
+                            const textMatch = text.match(invalidSuffixRegex);
+                            let decodedHref = href;
+                            
+                            try { decodedHref = decodeURIComponent(href); } catch (e) {}
+                            const hrefMatch = decodedHref.match(invalidSuffixRegex);
+                            
+                            if (textMatch || hrefMatch) {
+                                // 提取被误判的后缀字符（优先取 text 中的匹配项）
+                                const suffix = textMatch ? textMatch[1] : hrefMatch[1];
+                                // 剔除 <a> 节点内部的无效后缀
+                                a.textContent = text.replace(invalidSuffixRegex, '');
+                                // 剔除 href 属性中的无效后缀
+                                try {
+                                    if (decodedHref.match(invalidSuffixRegex)) {
+                                        a.setAttribute('href', encodeURI(decodedHref.replace(invalidSuffixRegex, '')));
+                                    }
+                                } catch (e) {
+                                    a.setAttribute('href', href.replace(invalidSuffixRegex, ''));
+                                }
+                                // 将被剔除的中文/标点重新插入到 <a> 节点外部的 DOM 树中
+                                a.insertAdjacentText('afterend', suffix);
+                            }
+                        });
                         innerHTML = doc.body.innerHTML;
                     } else {
                         innerHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
