@@ -82,16 +82,22 @@
     line-height: 1.5;
     word-wrap: break-word;
     white-space: pre-wrap;
+    text-align: justify;
+    text-justify: auto;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    -webkit-hyphens: auto;
+    hyphens: auto;
 }
 
 #waifu-chat-box .waifu-chat-msg.waifu-msg-user .waifu-chat-bubble {
-    background: #5dabff;
+    background: #449effec;
     color: #fff;
     border-bottom-right-radius: 2px;
 }
 
 #waifu-chat-box .waifu-chat-msg.waifu-msg-ai .waifu-chat-bubble {
-    background: #ffabff;
+    background: #ffeaea;
     color: #333;
     border-bottom-left-radius: 2px;
 }
@@ -190,10 +196,9 @@
 
 /* 清除默认段落边距 */
 #waifu-chat-box .waifu-chat-bubble p {
-    margin: 0 0 8px 0;
-}
-#waifu-chat-box .waifu-chat-bubble p:last-child {
-    margin: 0;
+    text-indent: 2em;
+    margin: 0 !important;
+    line-height: 1.6;
 }
 
 /* 行内代码样式 */
@@ -203,6 +208,9 @@
     border-radius: 4px;
     font-family: Consolas, Monaco, monospace;
     font-size: 0.9em;
+    text-align: left !important;
+    word-break: break-all !important;
+    white-space: pre-wrap !important;
 }
 
 [data-theme="dark"] #waifu-chat-box .waifu-chat-bubble code {
@@ -219,6 +227,10 @@
     font-size: 12px;
     margin: 8px 0;
     scrollbar-width: thin;
+    text-align: left !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    white-space: pre !important;
 }
 
 [data-theme="dark"] #waifu-chat-box .waifu-chat-bubble pre {
@@ -289,4 +301,8 @@
 #waifu-chat-box .waifu-chat-bubble p:empty,
 #waifu-chat-box .waifu-chat-bubble p:has(> br:only-child) {
     display: none !important;
+}
+
+#waifu-chat-box .waifu-chat-msg.waifu-msg-ai .waifu-chat-bubble {
+    white-space: normal; 
 }

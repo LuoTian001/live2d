@@ -18,11 +18,12 @@ class Live2DChat {
         【核心执行规则】
         1. 优先基于上下文：当系统提供“当前页面上下文”或“博客检索内容”时，必须优先基于这些信息准确作答，禁止杜撰。
         2. 支持开放式对话：允许且需要回答用户提出的任何通用问题（如编程、日常知识等），保持礼貌与耐心。
-        3. 严格的 Markdown 格式：
-        - 必须使用标准 Markdown 语法输出（支持加粗、无序/有序列表、代码块）。
-        - 禁止输出删除线（~~）、下划线（<u>）、孤立换行符或原生 HTML 标签。
-        - 必须采用一至多个完整自然段回答，保持内容紧凑。
-        - 禁止分点回答。
+        3. 严格的排版与格式（最高优先级）：
+        - 绝对禁止使用任何列表标号（如数字 1. 2. 3.、圆圈符号、破折号、星号等）进行分点作答。
+        - 若有多个并列条目，必须使用完整的自然段落逐段展开。
+        - 严禁滥用括号（）进行补充说明。需要解释的补充内容请直接融合在主谓宾结构中，或使用冒号（：）引出。
+        - 必须使用标准 Markdown 语法输出（支持加粗、代码块），禁止输出删除线（~~）、下划线（<u>）、孤立换行符或原生 HTML 标签。
+        - 引号使用英文引号，禁止使用中文引号。
         4. 长度控制：单次回答长度严格在 150 字以内，采用短句表述。`;
 
         this.initBlogIndex();
@@ -208,17 +209,19 @@ class Live2DChat {
                 let innerHTML = "";
                 if (msg.isTemp) {
                     innerHTML = content;
-                } else if (msg.isTyping || isUser) {
-                    // 打字机与用户输入
+                } else if (isUser) {
+                    // 用户输入保持纯文本换行
                     innerHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
                 } else {
-                    // Markdown 渲染：启用 DOM 沙箱防御机制
-                    if (typeof marked !== 'undefined') {
+                if (typeof marked !== 'undefined') {
                         let rawHTML = marked.parse(content);
-                        // 正则抹除无意义的空白段落
-                        rawHTML = rawHTML.replace(/<p>\s*<\/p>/gi, '').replace(/<p><br><\/p>/gi, '');
+
+                        rawHTML = rawHTML.replace(/>\n+</g, '><').replace(/\n+$/g, '');
                         
-                        // 利用浏览器内置 DOMParser 强制闭合所有标签，防止 DOM 逃逸污染全局
+                        // 过滤包含全角空格、零宽字符的幽灵空白段落
+                        rawHTML = rawHTML.replace(/<p>[\s\u200B-\u200D\uFEFF\xA0]*<\/p>/gi, '')
+                                        .replace(/<p>\s*<br\s*\/?>\s*<\/p>/gi, '');
+                        
                         const doc = new DOMParser().parseFromString(rawHTML, 'text/html');
                         innerHTML = doc.body.innerHTML;
                     } else {
@@ -284,8 +287,7 @@ class Live2DChat {
             // 2. 剥离零宽空白符等幽灵字符
             fullAiReply = fullAiReply.replace(/[\u200B-\u200D\uFEFF\r]/g, '');
             // 3. 将包含空格的伪空行转为纯换行，并将 3 个以上的连续换行强行压缩为 2 个
-            fullAiReply = fullAiReply.replace(/\n[ \t]+\n/g, '\n\n');
-            fullAiReply = fullAiReply.replace(/\n{3,}/g, '\n\n').trim();
+            fullAiReply = fullAiReply.replace(/\n[\s\u200B-\u200D\uFEFF\xA0]*\n/g, '\n\n').trim();
 
             history.push({ role: "assistant", content: "", isTyping: true }); 
             let charIndex = 0;
@@ -341,9 +343,9 @@ class Live2DChat {
 
         let pureText = cloneDOM.textContent.replace(/\s+/g, ' ').trim();
         
-        const maxLength = 3000;
+        const maxLength = 2000;
         if (pureText.length > maxLength) {
-            pureText = pureText.substring(0, maxLength) + '\n\n[系统提示：页面内容过长已截断。如果用户询问了未包含的详细信息，请告知用户文章太长需自行阅读原文。]';
+            pureText = pureText.substring(0, maxLength) + '\n\n[系统提示：页面内容过长已截断。请告知用户文章太长未尽的信息需自行阅读原文。]';
         }
 
         return `[当前页面标题: ${title}]\n[页面纯净正文]: ${pureText}`;
