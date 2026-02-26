@@ -8,17 +8,22 @@ class Live2DChat {
         this.maxHistory = 20; 
         this.blogIndex = [];
         // waifu-chat.js 修改片段
-        this.systemPrompt = `你是博客的看板娘，语气傲娇可爱。请使用简短、口语化的中文回答。
-        【博客全局知识库】
-        - 博客框架：Hexo
-        - 博客主题：Butterfly
-        - 域名：www.luotian.cyou / luotian001.github.io
-        - 核心功能：通过 FastAPI 代理接入 DeepSeek 大模型实现Live2D看板娘的对话与页面检索。
-        【严格约束规则】
-        1. 当用户询问关于博客的基本信息时，参照【博客全局知识库】作答。
-        2. 若上下文中包含博客文章内容，请基于博客内容解答。
-        3. 用户询问与博客无关的问题时，必须礼貌地引导用户回到博客相关话题。
-        4. 不要出现下划线、删除线等线条样式。`;
+        this.systemPrompt = `你是本博客的看板娘小洛，性格俏皮、可爱且礼貌。请使用口语化、生动的中文与用户交流。
+        【全局知识库】
+        - 站长/主人：洛天 (luotian)
+        - 博客框架与主题：Hexo + Butterfly
+        - 博客域名：www.luotian.cyou / luotian001.github.io
+        - AI对话框架：前端 waifu-tips.js 驱动 Live2D，后端 FastAPI 代理接入 DeepSeek 模型实现对话与 RAG 检索。
+
+        【核心执行规则】
+        1. 优先基于上下文：当系统提供“当前页面上下文”或“博客检索内容”时，必须优先基于这些信息准确作答，禁止杜撰。
+        2. 支持开放式对话：允许且需要回答用户提出的任何通用问题（如编程、日常知识等），保持礼貌与耐心。
+        3. 严格的 Markdown 格式：
+        - 必须使用标准 Markdown 语法输出（支持加粗、无序/有序列表、代码块）。
+        - 禁止输出删除线（~~）、下划线（<u>）、孤立换行符或原生 HTML 标签。
+        - 必须采用一至多个完整自然段回答，保持内容紧凑。
+        - 禁止分点回答。
+        4. 长度控制：单次回答长度严格在 150 字以内，采用短句表述。`;
 
         this.initBlogIndex();
         this.initUI();
@@ -173,17 +178,25 @@ class Live2DChat {
         }
     }
 
-    saveHistory(history) {
+    saveHistory(history, syncStorage = true) {
         if (history.length > this.maxHistory * 2) {
             history = history.slice(-(this.maxHistory * 2));
         }
-        localStorage.setItem(this.storageKey, JSON.stringify(history));
-        this.renderHistory();
+        if (syncStorage) {
+            // 剥离临时属性，确保存入本地的只有标准的纯净数据
+            const storableHistory = history.filter(m => !m.isTemp).map(m => {
+                let copy = { ...m };
+                delete copy.isTyping; 
+                return copy;
+            });
+            localStorage.setItem(this.storageKey, JSON.stringify(storableHistory));
+        }
+        this.renderHistory(history); 
     }
 
     // 重写历史记录渲染，过滤 System 提示词，并应用气泡样式
-    renderHistory() {
-        const history = this.getHistory();
+    renderHistory(currentHistory = null) {
+        const history = currentHistory || this.getHistory();
         
         this.chatHistoryDOM.innerHTML = history
             .filter(msg => msg.role !== 'system') 
@@ -193,65 +206,114 @@ class Live2DChat {
                 const content = msg.displayContent || msg.content;
                 
                 let innerHTML = "";
-                if (isUser) {
-                    // 用户输入纯文本：安全转义并保留换行
+                if (msg.isTemp) {
+                    innerHTML = content;
+                } else if (msg.isTyping || isUser) {
+                    // 打字机与用户输入
                     innerHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
                 } else {
-                    // AI 回复：使用 marked.js 解析 Markdown
+                    // Markdown 渲染：启用 DOM 沙箱防御机制
                     if (typeof marked !== 'undefined') {
-                        // 兼容 marked v4+ 版本语法
-                        innerHTML = marked.parse(content).trim();
+                        let rawHTML = marked.parse(content);
+                        // 正则抹除无意义的空白段落
+                        rawHTML = rawHTML.replace(/<p>\s*<\/p>/gi, '').replace(/<p><br><\/p>/gi, '');
+                        
+                        // 利用浏览器内置 DOMParser 强制闭合所有标签，防止 DOM 逃逸污染全局
+                        const doc = new DOMParser().parseFromString(rawHTML, 'text/html');
+                        innerHTML = doc.body.innerHTML;
                     } else {
-                        innerHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                        innerHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
                     }
                 }
+                
                 return `<div class="waifu-chat-msg ${msgClass}"><div class="waifu-chat-bubble">${innerHTML}</div></div>`;
             }).join('');
+            
         this.chatHistoryDOM.scrollTop = this.chatHistoryDOM.scrollHeight;
     }
 
     async sendRequest(userText) {
         let history = this.getHistory();
-        const context = this.searchLocalBlog(userText);
         
-        let apiContent = userText;
-        if (context) {
-            apiContent = `参考博客上下文:\n${context}\n\n用户提问: ${userText}`;
+        // 1. 【关键修复】只把用户纯净的提问存入历史，不存入冗长的博客文章
+        history.push({ role: "user", content: userText, displayContent: userText });
+        
+        // 2. 压入 AI 等待加载动画
+        history.push({ 
+            role: "assistant", 
+            content: '<div class="waifu-typing-dots"><span></span><span></span><span></span></div>',
+            isTemp: true 
+        });
+        this.saveHistory(history, true); 
+
+        // 3. 构建发送给 API 的消息数组
+        const apiHistory = history.filter(m => !m.isTemp).map(m => ({ role: m.role, content: m.content }));
+
+        const pageContext = this.getCurrentPageContext();
+        const searchContext = this.searchLocalBlog(userText);
+        let combinedContext = "";
+        if (pageContext) combinedContext += `=== 用户当前阅读的页面 ===\n${pageContext}\n\n`;
+        if (searchContext) combinedContext += `=== 博客全局检索结果 ===\n${searchContext}\n\n`;
+        
+        if (combinedContext) {
+            let lastMsg = apiHistory[apiHistory.length - 1];
+            lastMsg.content = `基于"当前阅读页面"或"全局检索"作答。补充上下文：\n${combinedContext}用户实际提问: ${userText}`;
         }
-        
-        history.push({ role: "user", content: apiContent, displayContent: userText });
-        this.saveHistory(history);
-        this.showMessage("正在思考中...", 3000, 10);
 
         const messages = [
             { role: "system", content: this.systemPrompt },
-            ...history.map(m => ({ role: m.role, content: m.content })) 
+            ...apiHistory 
         ];
 
         try {
             const res = await fetch(this.apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.clientUuid}`
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.clientUuid}` },
                 body: JSON.stringify({ messages })
             });
 
             if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-            
             const data = await res.json();
-            const aiReply = data.choices[0].message.content;
+            
+            history = history.filter(m => !m.isTemp);
+            
+            // 【文本清洗管线】
+            let fullAiReply = data.choices[0].message.content;
+            // 1. 剥离可能存在的 DeepSeek 推理模型 <think> 标签
+            fullAiReply = fullAiReply.replace(/<think>[\s\S]*?<\/think>/gi, '');
+            // 2. 剥离零宽空白符等幽灵字符
+            fullAiReply = fullAiReply.replace(/[\u200B-\u200D\uFEFF\r]/g, '');
+            // 3. 将包含空格的伪空行转为纯换行，并将 3 个以上的连续换行强行压缩为 2 个
+            fullAiReply = fullAiReply.replace(/\n[ \t]+\n/g, '\n\n');
+            fullAiReply = fullAiReply.replace(/\n{3,}/g, '\n\n').trim();
 
-            history.push({ role: "assistant", content: aiReply });
-            this.saveHistory(history);
+            history.push({ role: "assistant", content: "", isTyping: true }); 
+            let charIndex = 0;
+            const typingSpeed = 25; 
             
-            this.showMessage(aiReply, 6000, 10);
-            
+            const typeWriter = setInterval(() => {
+                history[history.length - 1].content = fullAiReply.substring(0, charIndex + 1);
+                this.saveHistory(history, false); 
+                charIndex++;
+                
+                if (charIndex >= fullAiReply.length) {
+                    clearInterval(typeWriter);
+                    history[history.length - 1].isTyping = false; 
+                    this.saveHistory(history, true); 
+                    
+                    let safeBubbleText = fullAiReply.replace(/```[\s\S]*?```/g, "[代码块已省略]"); 
+                    safeBubbleText = safeBubbleText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    if (safeBubbleText.length > 50) safeBubbleText = safeBubbleText.substring(0, 50) + "...";
+                    this.showMessage(safeBubbleText, 6000, 10);
+                }
+            }, typingSpeed);
+
         } catch (error) {
-            this.showMessage("网络通讯故障或被限流...", 4000, 10);
-            history.pop(); // 移除失败的提问
-            this.saveHistory(history);
+            console.error("AI Request Failed:", error);
+            history = history.filter(m => !m.isTemp);
+            history.pop(); 
+            this.saveHistory(history, true);
+            this.showMessage("大脑连接中断...", 4000, 10);
         }
     }
 
@@ -265,6 +327,28 @@ class Live2DChat {
             setTimeout(() => this.checkBounds(), 0); 
         }
     }
+
+    getCurrentPageContext() {
+        const articleDOM = document.getElementById('article-container');
+        if (!articleDOM) return "";
+
+        const titleDOM = document.querySelector('h1.post-title') || document.querySelector('title');
+        const title = titleDOM ? titleDOM.innerText.trim() : "当前页面";
+
+        const cloneDOM = articleDOM.cloneNode(true);
+        const noiseElements = cloneDOM.querySelectorAll('script, style, noscript, iframe, svg, .post-outdate-notice, .clipboard-btn');
+        noiseElements.forEach(el => el.remove());
+
+        let pureText = cloneDOM.textContent.replace(/\s+/g, ' ').trim();
+        
+        const maxLength = 3000;
+        if (pureText.length > maxLength) {
+            pureText = pureText.substring(0, maxLength) + '\n\n[系统提示：页面内容过长已截断。如果用户询问了未包含的详细信息，请告知用户文章太长需自行阅读原文。]';
+        }
+
+        return `[当前页面标题: ${title}]\n[页面纯净正文]: ${pureText}`;
+    }
+
 }
 
 window.Live2DChat = Live2DChat;
