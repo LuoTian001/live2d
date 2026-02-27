@@ -1,20 +1,20 @@
 # Live2D Widget with AI Chat
 
 本项目基于 [live2d-widget-v3](https://github.com/letere-gzj/live2d-widget-v3) 二次开发，接入Live2D AI 对话功能，支持上下文对话、Markdown 渲染以及全站 RAG（检索增强生成）检索。
-- 演示地址：[洛天的小窝](https://www.luotian.cyou)、[GitHub 博客](https://luotian001.github.io)
+- 模型演示地址：[洛天的小窝](https://www.luotian.cyou)、[GitHub 博客](https://luotian001.github.io)
 - live2d 基础配置教程：[Live2D moc3 模型部署教程 — 基于 Hexo Butterfly 主题](https://www.luotian.cyou/post/moc3-for-butterfly.html)
 - live2d AI 功能配置教程：[Live2D AI 聊天功能配置教程 — 基于 FastAPI + DeepSeek](https://www.luotian.cyou/post/live2d-ai-chat.html)
-- 示例模型地址：[Allium](https://www.bilibili.com/video/BV1S8411H7zf/)；作者：[Yuri幽里_official](https://space.bilibili.com/1815643596)
+- 示例Live 2D模型地址：[Allium](https://www.bilibili.com/video/BV1S8411H7zf/)；作者：[Yuri幽里_official](https://space.bilibili.com/1815643596)
 
 <table style="width: 100%; text-align: center;">
-  <tr>
-    <td><img src="/example-img/ai-chat-1.png" width="60%" /><br><b>示例演示 1</b></td>
-    <td><img src="/example-img/ai-chat-2.png" width="60%" /><br><b>示例演示 2</b></td>
-  </tr>
-  <tr>
-    <td><img src="/example-img/ai-chat-3.png" width="80%" /><br><b>示例演示 3</b></td>
-    <td><img src="/example-img/ai-chat-4.png" width="80%" /><br><b>示例演示 4</b></td>
-  </tr>
+  <tr><center>
+    <td><img src="/example-img/ai-chat-1.png" width="100%" /><br><b>示例演示 1</b></td>
+    <td><img src="/example-img/ai-chat-2.png" width="100%" /><br><b>示例演示 2</b></td>
+  </center></tr>
+  <tr><center>
+    <td><img src="/example-img/ai-chat-3.png" width="100%" /><br><b>示例演示 3</b></td>
+    <td><img src="/example-img/ai-chat-4.png" width="100%" /><br><b>示例演示 4</b></td>
+  </center></tr>
 </table>
 
 > [!TIP]
@@ -185,12 +185,6 @@ AI 的行为逻辑、身份设定、UI 文本以及上下文处理策略由 `wai
   AI 对话引擎 (`waifu-chat.*` 文件) 具有完全独立的生命周期。如果你在某些页面不想开启 AI 功能，只需在前端脚本注入时不加载这三个文件，看板娘依然可以作为普通的 Live2D 挂件正常运行。
 1. **RAG 容器匹配**
   `waifu-chat.js` 中的本地阅读器默认通过 `#article-container` 选择器来提取当前页面的正文文本。如果你的 Hexo 博客未采用 Butterfly 主题，或者你在主题魔改中更改了文章主容器的 ID/Class，请务必在 `waifu-chat.json` 中同步修改 `pageContextSelector` 字段。否则 AI 将无法正确读取当前页面的上下文信息。
-
-## 3.3 后端部署
-
-*(这里是后端服务搭建与代理转发的文档)*
-
-【此章节即将更新...】
 
 ## 4. 鸣谢与协议
 
