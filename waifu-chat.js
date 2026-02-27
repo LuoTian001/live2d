@@ -229,11 +229,11 @@ class Live2DChat {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlText, "application/xml");
             
-            // 提取所有 entry 节点
             const entries = xmlDoc.querySelectorAll("entry");
             this.blogIndex = Array.from(entries).map(entry => {
                 const titleNode = entry.querySelector("title");
                 const contentNode = entry.querySelector("content");
+                const urlNode = entry.querySelector("url");
                 
                 let pureText = "";
                 if (contentNode) {
@@ -245,6 +245,7 @@ class Live2DChat {
 
                 return {
                     title: titleNode ? titleNode.textContent.trim() : "",
+                    url: urlNode ? urlNode.textContent.trim() : "",
                     content: pureText
                 };
             });
@@ -256,13 +257,23 @@ class Live2DChat {
     // 本地搜索博客索引，返回格式化的匹配结果字符串，供系统提示使用
     searchLocalBlog(keyword) {
         if (!this.blogIndex.length) return "";
+        let searchTerms = keyword;
+        const titleMatch = keyword.match(/《(.*?)》/);
+        if (titleMatch && titleMatch[1]) {
+            searchTerms = titleMatch[1].trim();
+        } else {
+            searchTerms = keyword.replace(/(帮我|找下|寻找|搜索|博客|中|有关|关于|的|文章|内容|请问|什么是|怎么)/g, "").trim() || keyword;
+        }
+
         const matched = this.blogIndex.filter(post => 
-            (post.title && post.title.includes(keyword)) || 
-            (post.content && post.content.includes(keyword))
+            (post.title && post.title.includes(searchTerms)) || 
+            (post.content && post.content.includes(searchTerms))
         );
+        
         if (matched.length === 0) return "";
-        return matched.slice(0, 6).map(p => 
-            `[标题: ${p.title}]\n内容: ${p.content.replace(/<[^>]+>/g, '').substring(0, 800)}...`
+
+        return matched.slice(0, 10).map(p => 
+            `[标题: ${p.title}]\n[链接: ${p.url}]\n内容: ${p.content.replace(/<[^>]+>/g, '').substring(0, 300)}...`
         ).join("\n\n");
     }
 
@@ -320,7 +331,7 @@ class Live2DChat {
                             a.setAttribute('rel', 'noopener noreferrer');
                             let href = a.getAttribute('href') || '';
                             let text = a.textContent || '';
-                            const invalidSuffixRegex = /([，。！？；：、“””’）\u4e00-\u9fa5]+)$/;
+                            const invalidSuffixRegex = /([，。！？；：、“””’）]+)$/;
                             const textMatch = text.match(invalidSuffixRegex);
                             let decodedHref = href;
                             

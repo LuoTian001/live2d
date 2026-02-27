@@ -1,6 +1,6 @@
 # Live2D Widget with AI Chat
 
-本项目基于 [live2d-widget-v3](https://github.com/letere-gzj/live2d-widget-v3) 二次开发，接入Live2D AI 对话功能，支持上下文对话、Markdown 渲染以及全站 RAG（检索增强生成）检索。
+&#8195;&#8195;本项目基于 [live2d-widget-v3](https://github.com/letere-gzj/live2d-widget-v3) 二次开发，接入Live2D AI 对话功能，支持上下文对话、Markdown 渲染以及全站 RAG（检索增强生成）检索。
 - 模型演示地址：[洛天的小窝](https://www.luotian.cyou)、[GitHub 博客](https://luotian001.github.io)
 - live2d 基础配置教程：[Live2D moc3 模型部署教程 — 基于 Hexo Butterfly 主题](https://www.luotian.cyou/post/moc3-for-butterfly.html)
 - live2d AI 功能配置教程：[Live2D AI 聊天功能配置教程 — 基于 FastAPI + DeepSeek](https://www.luotian.cyou/post/live2d-ai-chat.html)
@@ -34,7 +34,7 @@
 
 ## 📂 文件说明
 
-项目采用模块化设计，分离基础渲染层与 AI 逻辑层。主要目录结构与各文件功能说明如下：
+&#8195;&#8195;项目采用模块化设计，分离基础渲染层与 AI 逻辑层。主要目录结构与各文件功能说明如下：
 ```text
 live2d/
 ├── Core/
@@ -60,12 +60,12 @@ live2d/
 cd 你的博客目录/source/
 git clone git@github.com:LuoTian001/live2d-widget-AIChat.git live2d
 ```
-在`_config.yml`博客配置文件下添加以下代码，排除hexo对 `live2d` 目录的渲染：
+&#8195;&#8195;在`_config.yml`博客配置文件下添加以下代码，排除hexo对 `live2d` 目录的渲染：
 ```yaml
 skip_render: 
   - 'live2d/**'
 ```
-在 `_config.butterfly.yml` 文件中，找到 `inject.bottom` 节点，加入以下代码：
+&#8195;&#8195;在 `_config.butterfly.yml` 文件中，找到 `inject.bottom` 节点，加入以下代码：
 ```js
 inject:
   bottom:
@@ -154,7 +154,7 @@ inject:
       }
       </script>
 ```
-同时确保你已经安装 `hexo-generator-search` 插件，并在 `_config.butterfly.yml` 中正确配置了 `search.path`。这是 AI RAG 全局检索功能的依赖：
+&#8195;&#8195;同时确保你已经安装 `hexo-generator-search` 插件，并在 `_config.butterfly.yml` 中正确配置了 `search.path`。这是 AI RAG 全局检索功能的依赖：
 ```bash
 cd 你的博客目录/
 npm install hexo-generator-search --save
@@ -171,11 +171,11 @@ search:
 local_search:
   enable: true
 ```
-重新部署`hexo clean && hexo g && hexo d`，访问博客后你应该能够看到看板娘已经成功加载，并且侧边工具栏中出现了新的“Chat”图标。点击它就可以打开 AI 聊天窗口了。
+&#8195;&#8195;重新部署`hexo clean && hexo g && hexo d`，访问博客后你应该能够看到看板娘已经成功加载，并且侧边工具栏中出现了新的“Chat”图标。点击它就可以打开 AI 聊天窗口了。
 
 ### 3.1 参数配置
 
-AI 的行为逻辑、身份设定、UI 文本以及上下文处理策略由 `waifu-chat.json` 配置，可进行自定义：
+&#8195;&#8195;AI 的行为逻辑、身份设定、UI 文本以及上下文处理策略由 `waifu-chat.json` 配置，可进行自定义：
 
 | 参数 | 说明 |
 | :--- | :--- |
@@ -199,22 +199,23 @@ AI 的行为逻辑、身份设定、UI 文本以及上下文处理策略由 `wai
 
 - **基础功能配置简化说明**
 
-本项目在原版底层框架上对 Live2D 功能进行了一定程度的默认简化。如果你需要进一步自定义模型，例如自定义 `.exp3.json` 触发专属表情、为 `.motion3.json` 动作绑定口型与音频、或调整模型在 Canvas 画布中的 `scale` 缩放与 `translate` 坐标偏移量等，请务必参阅原项目的详细文档 👉 [live2d-widget-v3 使用说明](https://github.com/letere-gzj/live2d-widget-v3)。
+&#8195;&#8195;本项目在原版底层框架上对 Live2D 功能进行了一定程度的默认简化。如果你需要进一步自定义模型，例如自定义 `.exp3.json` 触发专属表情、为 `.motion3.json` 动作绑定口型与音频、或调整模型在 Canvas 画布中的 `scale` 缩放与 `translate` 坐标偏移量等，请务必参阅原项目的详细文档 👉 [live2d-widget-v3 使用说明](https://github.com/letere-gzj/live2d-widget-v3)。
 
 - **AI 模块的低耦合性说明**
 
-AI 对话引擎 (`waifu-chat.*` 文件) 具有完全独立的生命周期。如果你在某些页面不想开启 AI 功能，只需在前端脚本注入时不加载这三个文件，看板娘依然可以作为普通的 Live2D 挂件正常运行。
+&#8195;&#8195;AI 对话引擎 (`waifu-chat.*` 文件) 具有完全独立的生命周期。如果你在某些页面不想开启 AI 功能，只需在前端脚本注入时不加载这三个文件，看板娘依然可以作为普通的 Live2D 挂件正常运行。
 
 - **RAG 容器匹配说明**
 
-`waifu-chat.js` 中的本地阅读器默认通过 `#article-container` 选择器来提取当前页面的正文文本。如果你的 Hexo 博客未采用 Butterfly 主题，或者你在主题魔改中更改了文章主容器的 ID/Class，请务必在 `waifu-chat.json` 中同步修改 `pageContextSelector` 字段。
+&#8195;&#8195;`waifu-chat.js` 中的本地阅读器默认通过 `#article-container` 选择器来提取当前页面的正文文本。如果你的 Hexo 博客未采用 Butterfly 主题，或者你在主题魔改中更改了文章主容器的 ID/Class，请务必在 `waifu-chat.json` 中同步修改 `pageContextSelector` 字段。同时需检查你的站点根目录是否存在 `search.xml` 文件（由 `hexo-generator-search` 生成），并将其路径正确配置到 `searchXmlPath` 字段。
 
 ## ❤ 鸣谢与开源协议
 
-本项目前端 AI 逻辑与 UI 由 [LuoTian](https://github.com/LuoTian001/) 开发。Live2D 的渲染底层框架基于以下开源项目：
+&#8195;&#8195;本项目前端 AI 逻辑与 UI 由 [LuoTian](https://github.com/LuoTian001/) 开发。Live2D 的渲染底层框架基于以下开源项目，向这些作者表示感谢：
 
 * [stevenjoezhang/live2d-widget](https://github.com/stevenjoezhang/live2d-widget) (Live2D 模型渲染与交互功能)
 * [letere-gzj/live2d-widget-v3](https://github.com/letere-gzj/live2d-widget-v3) (在前者基础上增加对 moc3 模型的支持)
 * [marked.js](https://marked.js.org/) (Markdown 解析引擎)
 
-本项目遵循 MIT 开源协议。
+&#8195;&#8195;如果你喜欢这个项目，欢迎点个 Star ⭐ 支持一下！如果你有任何问题、建议或者想要贡献代码，欢迎提交 Issue 或 Pull Request。
+&#8195;&#8195;本项目遵循 MIT 开源协议。
