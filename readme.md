@@ -218,4 +218,5 @@ local_search:
 * [marked.js](https://marked.js.org/) (Markdown 解析引擎)
 
 &#8195;&#8195;如果你喜欢这个项目，欢迎点个 Star ⭐ 支持一下！如果你有任何问题、建议或者想要贡献代码，欢迎提交 Issue 或 Pull Request。
-&#8195;&#8195;本项目遵循 MIT 开源协议。
+
+> 本项目遵循 MIT 开源协议。
