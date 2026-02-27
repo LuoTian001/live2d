@@ -74,7 +74,7 @@ inject:
       if (typeof window.live2d_initialized === 'undefined') {
           window.live2d_initialized = true;
           const cdnPath = "https://cdn.jsdelivr.net/gh/LuoTian001/live2d-widget-AIChat@main/"; // CDN 加速路径，指向本项目的 jsDelivr 镜像仓库
-          const localPath = "live2d/"; // 本地资源路径，指向 Hexo 博客的 public 目录下的 live2d 文件夹
+          const localPath = "/live2d/"; // 本地资源路径，指向 Hexo 博客的 public 目录下的 live2d 文件夹
           const config = {
               path: {
                   homePath: "/", // 博客首页路径，默认 "/"
@@ -154,6 +154,23 @@ inject:
       }
       </script>
 ```
+同时确保你已经安装 `hexo-generator-search` 插件，并在 `_config.butterfly.yml` 中正确配置了 `search.path`。这是 AI RAG 全局检索功能的依赖：
+```bash
+cd 你的博客目录/
+npm install hexo-generator-searchdb --save
+```
+```yaml
+search:
+  use: local_search
+  path: search.json
+  field: post
+  content: true
+  format: html
+
+local_search:
+  enable: true
+```
+重新部署`hexo clean && hexo g && hexo d`，访问博客后你应该能够看到看板娘已经成功加载，并且侧边工具栏中出现了新的“Chat”图标。点击它就可以打开 AI 聊天窗口了。
 
 ### 3.1 参数配置
 
@@ -179,16 +196,13 @@ AI 的行为逻辑、身份设定、UI 文本以及上下文处理策略由 `wai
 
 ### 3.2 注意事项
 
-1. **基础功能配置简化说明**
-  本项目在原版底层框架上对 Live2D 功能进行了一定程度的默认简化。如果你需要进一步自定义模型，例如自定义 `.exp3.json` 触发专属表情、为 `.motion3.json` 动作绑定口型与音频、或调整模型在 Canvas 画布中的 `scale` 缩放与 `translate` 坐标偏移量等，请务必参阅原项目的详细文档 👉 [live2d-widget-v3 使用说明](https://github.com/letere-gzj/live2d-widget-v3)。
-1. **AI 模块的低耦合性**
-  AI 对话引擎 (`waifu-chat.*` 文件) 具有完全独立的生命周期。如果你在某些页面不想开启 AI 功能，只需在前端脚本注入时不加载这三个文件，看板娘依然可以作为普通的 Live2D 挂件正常运行。
-1. **RAG 容器匹配**
-  `waifu-chat.js` 中的本地阅读器默认通过 `#article-container` 选择器来提取当前页面的正文文本。如果你的 Hexo 博客未采用 Butterfly 主题，或者你在主题魔改中更改了文章主容器的 ID/Class，请务必在 `waifu-chat.json` 中同步修改 `pageContextSelector` 字段。否则 AI 将无法正确读取当前页面的上下文信息。
+1. **基础功能配置简化说明：**本项目在原版底层框架上对 Live2D 功能进行了一定程度的默认简化。如果你需要进一步自定义模型，例如自定义 `.exp3.json` 触发专属表情、为 `.motion3.json` 动作绑定口型与音频、或调整模型在 Canvas 画布中的 `scale` 缩放与 `translate` 坐标偏移量等，请务必参阅原项目的详细文档 👉 [live2d-widget-v3 使用说明](https://github.com/letere-gzj/live2d-widget-v3)。
+1. **AI 模块的低耦合性说明：**AI 对话引擎 (`waifu-chat.*` 文件) 具有完全独立的生命周期。如果你在某些页面不想开启 AI 功能，只需在前端脚本注入时不加载这三个文件，看板娘依然可以作为普通的 Live2D 挂件正常运行。
+1. **RAG 容器匹配说明：**`waifu-chat.js` 中的本地阅读器默认通过 `#article-container` 选择器来提取当前页面的正文文本。如果你的 Hexo 博客未采用 Butterfly 主题，或者你在主题魔改中更改了文章主容器的 ID/Class，请务必在 `waifu-chat.json` 中同步修改 `pageContextSelector` 字段。否则 AI 将无法正确读取当前页面的上下文信息。
 
 ## 4. 鸣谢与协议
 
-本项目前端 AI 逻辑与 UI 由 @LuoTian001 原创开发。Live2D 渲染底层框架基于优秀的开源项目二次修改：
+本项目前端 AI 逻辑与 UI 由 [@LuoTian](https://github.com/LuoTian001/) 开发。Live2D 渲染底层框架基于优秀的开源项目二次修改：
 
 * [stevenjoezhang/live2d-widget](https://github.com/stevenjoezhang/live2d-widget)
 * [letere-gzj/live2d-widget-v3](https://github.com/letere-gzj/live2d-widget-v3)
