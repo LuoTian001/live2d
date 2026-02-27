@@ -21,7 +21,7 @@
 >  + 此项目仅支持 moc3 模型，不支持旧版 moc 模型
 >  + AI 功能目前需要后端服务器支持，请确保已经按照 [教程](https://www.luotian.cyou/post/live2d-ai-chat.html) 部署了 FastAPI + DeepSeek 后端服务，并正确配置了 API 地址和鉴权 UUID
 
-## 1. 核心功能特性
+## ⭐ 核心功能
 
 * **moc3 模型支持**：对接 Cubism SDK for Web (v5)，支持渲染现代 Live2D 模型。适配 butterfly 的 PJAX 功能。
 * **AI 对话交互**：
@@ -32,7 +32,7 @@
 * **自定义配置**：提供提示词（System Prompt）、欢迎语、快捷回复等选项。可通过 JSON 热更新，无需修改核心逻辑代码。
 * **轻量级前端集成**：通过 bottom 接入，无需修改主题源码。且 AI 功能与 Live2D 核心模块完全解耦，可根据需求选择性启用。
 
-## 2. 文件说明
+## 📂 文件说明
 
 项目采用模块化设计，分离基础渲染层与 AI 逻辑层。主要目录结构与各文件功能说明如下：
 ```text
@@ -51,7 +51,7 @@ live2d/
 └── waifu-chat.js                # 🆕 AI 聊天核心引擎 (负责 RAG 文本抓取、API 请求封装、Markdown 解析与打字机渲染)
 ```
 
-## 3. 前端部署
+## 🚀 前端部署
 
 > [!TIP] 
 > 该部分教程假设你已经有一个基于 Hexo 的博客，并且正在使用 Butterfly 主题。如果为其他主题请根据实际情况调整资源路径和注入方式。
@@ -196,16 +196,24 @@ AI 的行为逻辑、身份设定、UI 文本以及上下文处理策略由 `wai
 
 ### 3.2 注意事项
 
-1. **基础功能配置简化说明：**本项目在原版底层框架上对 Live2D 功能进行了一定程度的默认简化。如果你需要进一步自定义模型，例如自定义 `.exp3.json` 触发专属表情、为 `.motion3.json` 动作绑定口型与音频、或调整模型在 Canvas 画布中的 `scale` 缩放与 `translate` 坐标偏移量等，请务必参阅原项目的详细文档 👉 [live2d-widget-v3 使用说明](https://github.com/letere-gzj/live2d-widget-v3)。
-1. **AI 模块的低耦合性说明：**AI 对话引擎 (`waifu-chat.*` 文件) 具有完全独立的生命周期。如果你在某些页面不想开启 AI 功能，只需在前端脚本注入时不加载这三个文件，看板娘依然可以作为普通的 Live2D 挂件正常运行。
-1. **RAG 容器匹配说明：**`waifu-chat.js` 中的本地阅读器默认通过 `#article-container` 选择器来提取当前页面的正文文本。如果你的 Hexo 博客未采用 Butterfly 主题，或者你在主题魔改中更改了文章主容器的 ID/Class，请务必在 `waifu-chat.json` 中同步修改 `pageContextSelector` 字段。否则 AI 将无法正确读取当前页面的上下文信息。
+- **基础功能配置简化说明**
 
-## 4. 鸣谢与协议
+本项目在原版底层框架上对 Live2D 功能进行了一定程度的默认简化。如果你需要进一步自定义模型，例如自定义 `.exp3.json` 触发专属表情、为 `.motion3.json` 动作绑定口型与音频、或调整模型在 Canvas 画布中的 `scale` 缩放与 `translate` 坐标偏移量等，请务必参阅原项目的详细文档 👉 [live2d-widget-v3 使用说明](https://github.com/letere-gzj/live2d-widget-v3)。
 
-本项目前端 AI 逻辑与 UI 由 [@LuoTian](https://github.com/LuoTian001/) 开发。Live2D 渲染底层框架基于优秀的开源项目二次修改：
+- **AI 模块的低耦合性说明**
 
-* [stevenjoezhang/live2d-widget](https://github.com/stevenjoezhang/live2d-widget)
-* [letere-gzj/live2d-widget-v3](https://github.com/letere-gzj/live2d-widget-v3)
+AI 对话引擎 (`waifu-chat.*` 文件) 具有完全独立的生命周期。如果你在某些页面不想开启 AI 功能，只需在前端脚本注入时不加载这三个文件，看板娘依然可以作为普通的 Live2D 挂件正常运行。
+
+- **RAG 容器匹配说明**
+
+`waifu-chat.js` 中的本地阅读器默认通过 `#article-container` 选择器来提取当前页面的正文文本。如果你的 Hexo 博客未采用 Butterfly 主题，或者你在主题魔改中更改了文章主容器的 ID/Class，请务必在 `waifu-chat.json` 中同步修改 `pageContextSelector` 字段。
+
+## ❤ 鸣谢与开源协议
+
+本项目前端 AI 逻辑与 UI 由 [LuoTian](https://github.com/LuoTian001/) 开发。Live2D 的渲染底层框架基于以下开源项目：
+
+* [stevenjoezhang/live2d-widget](https://github.com/stevenjoezhang/live2d-widget) (Live2D 模型渲染与交互功能)
+* [letere-gzj/live2d-widget-v3](https://github.com/letere-gzj/live2d-widget-v3) (在前者基础上增加对 moc3 模型的支持)
 * [marked.js](https://marked.js.org/) (Markdown 解析引擎)
 
 本项目遵循 MIT 开源协议。
