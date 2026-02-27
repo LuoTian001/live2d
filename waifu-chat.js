@@ -1,26 +1,28 @@
 // waifu-chat.js
 class Live2DChat {
+
+    // 允许外部通过构造函数传入配置项，增强灵活性和兼容性
     constructor(config) {
         // 允许外部传入 JSON 路径，默认为同目录下的 waifu-chat.json
         this.configUrl = config.configUrl || '/waifu-chat.json'; 
-        
         // 允许直接从 JS 传入覆盖 API 配置 (兼容旧逻辑)
         this.apiUrlOverride = config.apiUrl;
         this.clientUuidOverride = config.clientUuid;
-        
+        // 允许外部传入消息显示函数，兼容 Live2D 原有气泡提示
         this.showMessage = window.waifuShowMessage || console.log;
         this.blogIndex = [];
-
         // 异步初始化
         this.init();
     }
 
+    // 核心初始化流程：加载配置 -> 初始化博客索引 -> 初始化 UI
     async init() {
         await this.loadConfig();
         this.initBlogIndex();
         this.initUI();
     }
 
+    // 加载外部配置文件，支持动态更新和兜底默认配置
     async loadConfig() {
         try {
             const timestamp = new Date().getTime();
@@ -33,35 +35,45 @@ class Live2DChat {
             this.applyConfig({}); 
         }
     }
-
+    
+    // 应用配置项到实例属性，支持层级覆盖和默认值
     applyConfig(cfg) {
+        // API 配置优先级：构造函数覆盖 > JSON 配置 > 内置默认值
         this.apiUrl = this.apiUrlOverride || cfg?.api?.url || '/api/chat';
         this.clientUuid = this.clientUuidOverride || cfg?.api?.uuid || '';
-
+        // UI 配置优先级：JSON 配置 > 内置默认值
         this.ui = Object.assign({
             title: "Relink 终端",
             placeholder: "发送消息 (Enter发送, Shift+Enter换行)...",
             errorMsg: "大脑连接中断...",
             typingSpeed: 25
         }, cfg?.ui || {});
-
+        // Chat 配置优先级：JSON 配置 > 内置默认值
         this.chatCfg = Object.assign({
             storageKey: "waifu_chat_history",
             maxHistory: 20,
+            pageContextMaxLength: 3000,
+            pageContextSelector: "#article-container",
             searchJsonPath: "/search.json",
+            welcomeMsg: "欢迎来到洛天的小窝！这里是小洛喵~ 请问有什么需要帮助你的？",
+            welcomeOptions: [
+                { display: "做个自我介绍", send: "请你做一个自我介绍吧。" },
+                { display: "总结文章内容", send: "请你总结一下这篇文章的主要内容吧。" },
+                { display: "介绍页面功能", send: "当前这个页面是干什么用的呀？" },
+                { display: "随便聊点什么", send: "让我们随便聊点什么吧。" }
+            ],
             contextTemplate: {
                 pageContextTitle: "=== 用户当前阅读的页面 ===",
                 searchContextTitle: "=== 博客全局检索结果 ===",
                 instruction: "基于\"当前阅读页面\"或\"全局检索\"作答。补充上下文：",
                 userQuestion: "用户实际提问:",
-                truncateMsg: "[系统提示：页面内容过长已截断。请告知用户文章太长未尽的信息需自行阅读原文。]"
+                truncateMsg: "[系统提示：页面内容过长已截断。请礼貌告知用户文章太长，未尽的信息需自行阅读原文。]"
             }
         }, cfg?.chat || {});
-
-        // 核心修复：支持将 JSON 中的 Prompt 数组重新组装为带有换行符的完整字符串
+        // 系统提示优先级：JSON 配置 > 内置默认值
         const rawPrompt = cfg?.chat?.systemPrompt;
-        const defaultPrompt = "你是本博客的看板娘小洛，性格俏皮、可爱且礼貌。请使用口语化、生动的中文与用户交流。"; // 兜底
-        
+        const defaultPrompt = "你是本博客的看板娘小洛，性格俏皮、可爱且礼貌。请使用口语化、生动的中文与用户交流。";
+        // 支持系统提示既可以是字符串也可以是字符串数组，数组会自动拼接成多行文本
         if (Array.isArray(rawPrompt)) {
             this.systemPrompt = rawPrompt.join('\n');
         } else if (typeof rawPrompt === 'string') {
@@ -69,19 +81,18 @@ class Live2DChat {
         } else {
             this.systemPrompt = defaultPrompt;
         }
-
         this.storageKey = this.chatCfg.storageKey;
         this.maxHistory = this.chatCfg.maxHistory;
     }
 
+    // 初始化聊天窗口 UI，注入必要的 DOM 结构和事件监听
     initUI() {
-        // 定义 SVG 图标路径 (FontAwesome)
+        // SVG 图标定义，内嵌方式避免额外请求，提升性能
         const svgTrash = '<svg viewBox="0 0 448 512"><path d="M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg>';
         const svgExpand = '<svg viewBox="0 0 448 512"><path d="M32 32C14.3 32 0 46.3 0 64v96c0 17.7 14.3 32 32 32s32-14.3 32-32V96h64c17.7 0 32-14.3 32-32s-14.3-32-32-32H32zM64 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7 14.3 32 32 32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H64v-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32h64v64c0 17.7 14.3 32 32 32s32-14.3 32-32V64c0-17.7-14.3-32-32-32H320zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32v64h-64c-17.7 0-32 14.3-32 32s14.3 32 32 32h96c17.7 0 32-14.3 32-32V352z"/></svg>';
         const svgCompress = '<svg viewBox="0 0 448 512"><path d="M160 64c0-17.7-14.3-32-32-32s-32 14.3-32 32v64H32c-17.7 0-32 14.3-32 32s14.3 32 32 32h96c17.7 0 32-14.3 32-32V64zM32 320c-17.7 0-32 14.3-32 32s14.3 32 32 32h64v64c0 17.7 14.3 32 32 32s32-14.3 32-32V352c0-17.7-14.3-32-32-32H32zM352 64c0-17.7-14.3-32-32-32s-32 14.3-32 32v96c0 17.7 14.3 32 32 32h96c17.7 0 32-14.3 32-32s-14.3-32-32-32H352V64zM320 320c-17.7 0-32 14.3-32 32v96c0 17.7 14.3 32 32 32s32-14.3 32-32v-64h64c17.7 0 32-14.3 32-32s-14.3-32-32-32H320z"/></svg>';
         const svgClose = '<svg viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>';
-
-        // 注入来自配置文件的文本
+        // 注入聊天窗口 HTML 结构
         const chatBoxHTML = `
             <div id="waifu-chat-box">
                 <div class="waifu-chat-header">
@@ -98,15 +109,30 @@ class Live2DChat {
                 </div>
             </div>
         `;
+        // 确保目标容器存在后再注入，避免潜在的 DOM 错误
         document.getElementById("waifu").insertAdjacentHTML("beforeend", chatBoxHTML);
-        
+        // 获取必要的 DOM 元素引用
         this.chatBox = document.getElementById("waifu-chat-box");
         this.chatHistoryDOM = document.getElementById("waifu-chat-history");
         this.chatInput = document.getElementById("waifu-chat-input");
-
+        // 事件委托：监听聊天历史区域的点击事件，捕捉快速选项按钮的点击，支持预设消息的快速发送，提升用户体验和引导性
+        this.chatHistoryDOM.addEventListener("click", (e) => {
+            const target = e.target.closest('.waifu-chat-quick-action');
+            if (target) {
+                let textToSend = target.getAttribute("data-send");
+                if (!textToSend) return;
+                // 解析 "||" 并随机抽取一条发送
+                if (textToSend.includes("||")) {
+                    const parts = textToSend.split("||").map(s => s.trim());
+                    textToSend = parts[Math.floor(Math.random() * parts.length)];
+                }
+                this.sendRequest(textToSend);
+                this.initBoundsManagement();
+            }
+        });
+        // 初始渲染聊天历史，确保界面与数据同步
         this.renderHistory();
-
-        // 窗口放大与缩小逻辑
+        // 窗口最大化/恢复逻辑
         let isMaximized = false;
         const maxBtn = document.getElementById("waifu-chat-max-btn");
         maxBtn.addEventListener("click", () => {
@@ -116,24 +142,24 @@ class Live2DChat {
             maxBtn.title = isMaximized ? "缩小" : "放大";
             this.chatHistoryDOM.scrollTop = this.chatHistoryDOM.scrollHeight;
         });
-
         // 关闭窗口逻辑
         document.getElementById("waifu-chat-close").addEventListener("click", () => {
             this.toggle();
         });
-
         // 清空记忆逻辑
         document.getElementById("waifu-chat-clear").addEventListener("click", () => {
             localStorage.removeItem(this.storageKey);
+            if (this._welcomeInterval) {
+                clearInterval(this._welcomeInterval);
+                this._welcomeInterval = null;
+            }
             this.renderHistory();
         });
-
         // 输入框伸缩逻辑
         this.chatInput.addEventListener("input", function() {
             this.style.height = "auto";
             this.style.height = (this.scrollHeight) + "px";
         });
-
         // 回车发送逻辑
         this.chatInput.addEventListener("keydown", (e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -149,27 +175,25 @@ class Live2DChat {
         });
     }
 
+    // 边界检测与自动调整逻辑，确保聊天窗口始终可见且不被遮挡
     checkBounds() {
         if (!this.chatBox || this.chatBox.style.display === "none") return;
         const rect = this.chatBox.getBoundingClientRect();
-        
+        // 计算相对于视口的真实位置，考虑当前的平移偏移
         const trueLeft = rect.left - this.currentTranslateX;
         const trueRight = rect.right - this.currentTranslateX;
         const trueTop = rect.top - this.currentTranslateY;
         const trueBottom = rect.bottom - this.currentTranslateY;
-
+        // 计算需要调整的目标平移值，保持至少 10px 的边距
         let targetX = 0;
         let targetY = 0;
-
         const vw = window.innerWidth;
         const vh = window.innerHeight;
-
         if (trueLeft < 10) targetX = 10 - trueLeft;
         else if (trueRight > vw - 10) targetX = vw - 10 - trueRight;
-
         if (trueTop < 10) targetY = 10 - trueTop;
         else if (trueBottom > vh - 10) targetY = vh - 10 - trueBottom;
-
+        // 只有当需要调整的距离超过 1px 时才进行平移，避免频繁的小幅调整导致界面抖动
         if (Math.abs(targetX - this.currentTranslateX) > 1 || Math.abs(targetY - this.currentTranslateY) > 1) {
             this.currentTranslateX = targetX;
             this.currentTranslateY = targetY;
@@ -177,27 +201,27 @@ class Live2DChat {
         }
     }
 
+    // 初始化边界管理，监听窗口大小变化和聊天窗口样式变化，动态调整位置确保可见
     initBoundsManagement() {
         this.currentTranslateX = 0;
         this.currentTranslateY = 0;
-
         window.addEventListener('resize', () => this.checkBounds());
-
+        // 使用 ResizeObserver 监听聊天窗口尺寸变化，兼容性较好的现代浏览器支持
         if (window.ResizeObserver) {
             const resObserver = new ResizeObserver(() => this.checkBounds());
             resObserver.observe(this.chatBox);
         }
-
+        // 监听聊天窗口样式变化，捕捉 display 变化导致的边界问题
         const waifuDOM = document.getElementById("waifu");
         if (waifuDOM) {
             const mutObserver = new MutationObserver(() => this.checkBounds());
             mutObserver.observe(waifuDOM, { attributes: true, attributeFilter: ['style'] });
         }
     }
-
+    
+    // 初始化博客索引，尝试加载 search.json 文件以支持 RAG 功能，如果加载失败则降级为无索引模式
     async initBlogIndex() {
         try {
-            // 从配置中读取 search.json 的路径
             const res = await fetch(this.chatCfg.searchJsonPath);
             this.blogIndex = await res.json();
         } catch (e) {
@@ -205,6 +229,7 @@ class Live2DChat {
         }
     }
 
+    // 本地搜索博客索引，返回格式化的匹配结果字符串，供系统提示使用
     searchLocalBlog(keyword) {
         if (!this.blogIndex.length) return "";
         const matched = this.blogIndex.filter(post => 
@@ -217,6 +242,7 @@ class Live2DChat {
         ).join("\n\n");
     }
 
+    // 获取聊天历史，支持从 LocalStorage 读取并解析为对象数组，兼容性处理异常情况
     getHistory() {
         try {
             return JSON.parse(localStorage.getItem(this.storageKey)) || [];
@@ -225,6 +251,7 @@ class Live2DChat {
         }
     }
 
+    // 保存聊天历史，支持同步到 LocalStorage，并处理临时消息和异常情况
     saveHistory(history, syncStorage = true) {
         if (history.length > this.maxHistory * 2) {
             history = history.slice(-(this.maxHistory * 2));
@@ -240,16 +267,17 @@ class Live2DChat {
         this.renderHistory(history); 
     }
 
+    // 渲染聊天历史到界面，支持过滤系统消息和处理临时消息的特殊显示逻辑
     renderHistory(currentHistory = null) {
         const history = currentHistory || this.getHistory();
-        
+        // 过滤掉系统消息，只显示用户和 AI 的对话内容，保持界面简洁
         this.chatHistoryDOM.innerHTML = history
             .filter(msg => msg.role !== 'system') 
             .map(msg => {
                 const isUser = msg.role === 'user';
                 const msgClass = isUser ? 'waifu-msg-user' : 'waifu-msg-ai';
                 const content = msg.displayContent || msg.content;
-                
+                // 临时消息直接显示原始内容，用户消息进行基本转义，AI 消息尝试解析 Markdown（如果库可用），并处理链接中的中文和标点符号
                 let innerHTML = "";
                 if (msg.isTemp) {
                     innerHTML = content;
@@ -257,6 +285,7 @@ class Live2DChat {
                     innerHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
                 } else {
                     if (typeof marked !== 'undefined') {
+                        // 先将 Markdown 转换为 HTML，再进行链接处理，最后插入到页面中
                         let rawHTML = marked.parse(content);
                         rawHTML = rawHTML.replace(/>\n+</g, '><').replace(/\n+$/g, '');
                         rawHTML = rawHTML.replace(/<p>[\s\u200B-\u200D\uFEFF\xA0]*<\/p>/gi, '')
@@ -289,21 +318,50 @@ class Live2DChat {
                         });
                         innerHTML = doc.body.innerHTML;
                     } else {
+                        // 如果没有可用的 Markdown 库，则进行基本的 HTML 转义和换行处理，确保至少不会出现 HTML 注入问题
                         innerHTML = content.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
                     }
                 }
                 
+                // 如果消息包含选项且不是正在输入的状态，渲染选项按钮，快速发送预设消息
+                if (msg.options && msg.options.length > 0 && !msg.isTyping) {
+                    let optionsHTML = `<div class="waifu-welcome-options" style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(128,128,128,0.3);">`;
+                    msg.options.forEach(opt => {
+                        optionsHTML += `<div style="margin-top: 6px;">
+                            <a href="javascript:void(0);" class="waifu-chat-quick-action" data-send="${opt.send}" style="color: #0078D7; text-decoration: none; font-size: 0.95em; cursor: pointer;">
+                                👉 ${opt.display}
+                            </a>
+                        </div>`;
+                    });
+                    optionsHTML += `</div>`;
+                    innerHTML += optionsHTML;
+                }
+
                 return `<div class="waifu-chat-msg ${msgClass}"><div class="waifu-chat-bubble">${innerHTML}</div></div>`;
             }).join('');
             
         this.chatHistoryDOM.scrollTop = this.chatHistoryDOM.scrollHeight;
     }
-
+    
+    // 发送用户消息到后端 API，处理整个请求流程，包括历史管理、上下文增强、错误处理和打字动画
     async sendRequest(userText) {
+        if (this._welcomeInterval) {
+            clearInterval(this._welcomeInterval);
+            this._welcomeInterval = null;
+            let h = this.getHistory();
+            if (h.length === 0) {
+                h.push({ role: "assistant", 
+                    content: this.chatCfg.welcomeMsg,
+                    options: this.chatCfg.welcomeOptions || [] 
+                });
+                this.saveHistory(h, true);
+            }
+        }
+
         let history = this.getHistory();
         
         history.push({ role: "user", content: userText, displayContent: userText });
-        
+        // 压入临时消息占位符，避免接口请求过程中界面无反馈，同时标记为临时消息以便后续替换和清理
         history.push({ 
             role: "assistant", 
             content: '<div class="waifu-typing-dots"><span></span><span></span><span></span></div>',
@@ -316,8 +374,7 @@ class Live2DChat {
         const pageContext = this.getCurrentPageContext();
         const searchContext = this.searchLocalBlog(userText);
         let combinedContext = "";
-        
-        // 动态读取模板文字
+        // 从配置读取上下文模板标题和指令，增强提示的可定制性，同时保持系统提示的简洁和一致性
         const ct = this.chatCfg.contextTemplate;
         if (pageContext) combinedContext += `${ct.pageContextTitle}\n${pageContext}\n\n`;
         if (searchContext) combinedContext += `${ct.searchContextTitle}\n${searchContext}\n\n`;
@@ -331,7 +388,7 @@ class Live2DChat {
             { role: "system", content: this.systemPrompt },
             ...apiHistory 
         ];
-
+        // 接口请求流程：发送消息 -> 显示打字动画占位 -> 接收完整回复 -> 替换占位内容为完整回复 -> 错误处理和用户提示
         try {
             const res = await fetch(this.apiUrl, {
                 method: 'POST',
@@ -351,14 +408,12 @@ class Live2DChat {
 
             history.push({ role: "assistant", content: "", isTyping: true }); 
             let charIndex = 0;
-            // 从配置读取打字速度
             const typingSpeed = this.ui.typingSpeed; 
-            
             const typeWriter = setInterval(() => {
                 history[history.length - 1].content = fullAiReply.substring(0, charIndex + 1);
                 this.saveHistory(history, false); 
                 charIndex++;
-                
+                // 打字完成后，清除定时器，更新消息状态，并落盘存储完整回复，同时同步 Live2D 消息气泡显示
                 if (charIndex >= fullAiReply.length) {
                     clearInterval(typeWriter);
                     history[history.length - 1].isTyping = false; 
@@ -370,7 +425,6 @@ class Live2DChat {
                     this.showMessage(safeBubbleText, 6000, 10);
                 }
             }, typingSpeed);
-
         } catch (error) {
             console.error("AI Request Failed:", error);
             history = history.filter(m => !m.isTemp);
@@ -381,24 +435,68 @@ class Live2DChat {
         }
     }
 
+    // 切换聊天窗口显示状态，首次打开时渲染历史并显示欢迎消息，防止 JSON 未加载完用户就点击按钮导致的异常情况
     toggle() {
-        // 防止 JSON 未加载完用户就点击按钮
         if (!this.chatBox) {
             this.showMessage("正在建立神经链接，请稍后再试...", 3000, 10);
             return;
         }
-        
+        // 通过检查 display 样式来判断当前状态，兼容初始状态和用户手动设置的 display 样式，同时确保切换后界面状态与数据同步
         const isHidden = this.chatBox.style.display === "none" || this.chatBox.style.display === "";
         this.chatBox.style.display = isHidden ? "flex" : "none";
         if (isHidden) {
             this.renderHistory(); 
             this.chatInput.focus();
-            setTimeout(() => this.checkBounds(), 0); 
+            setTimeout(() => this.checkBounds(), 0);
+            if (this.getHistory().length === 0) {
+                this.showWelcomeMessage();
+            }
         }
     }
 
+    // 显示欢迎消息，支持打字动画效果，首次打开聊天窗口时调用，增强用户体验和界面活跃度
+    showWelcomeMessage() {
+        let history = this.getHistory();
+        if (history.length > 0) return; 
+        
+        const msgText = this.chatCfg.welcomeMsg;
+        if (!msgText) return;
+
+        // 压入打字动画占位消息，标记为正在打字状态，等待后续定时器更新内容和状态，同时确保界面有即时反馈
+        history.push({ 
+            role: "assistant", 
+            content: "", 
+            isTyping: true,
+            options: this.chatCfg.welcomeOptions || [] 
+        });
+        this.saveHistory(history, false);
+
+        let charIndex = 0;
+        const typingSpeed = this.ui.typingSpeed;
+        
+        // 并发防抖：清除遗留定时器
+        if (this._welcomeInterval) clearInterval(this._welcomeInterval);
+        
+        this._welcomeInterval = setInterval(() => {
+            history[history.length - 1].content = msgText.substring(0, charIndex + 1);
+            this.saveHistory(history, false);
+            charIndex++;
+            // 打字完成后，清除定时器，更新消息状态，并落盘存储完整回复，同时同步 Live2D 消息气泡显示
+            if (charIndex >= msgText.length) {
+                clearInterval(this._welcomeInterval);
+                this._welcomeInterval = null;
+                history[history.length - 1].isTyping = false;
+                this.saveHistory(history, true); 
+                let safeBubbleText = msgText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                if (safeBubbleText.length > 50) safeBubbleText = safeBubbleText.substring(0, 50) + "...";
+                this.showMessage(safeBubbleText, 6000, 10);
+            }
+        }, typingSpeed);
+    }
+
+    // 获取当前页面上下文，尝试提取文章正文并清理噪音元素，返回格式化的上下文字符串供系统提示使用，同时支持内容过长的截断提示
     getCurrentPageContext() {
-        const articleDOM = document.getElementById('article-container');
+        const articleDOM = document.querySelector(this.chatCfg.pageContextSelector);
         if (!articleDOM) return "";
 
         const titleDOM = document.querySelector('h1.post-title') || document.querySelector('title');
@@ -409,16 +507,13 @@ class Live2DChat {
         noiseElements.forEach(el => el.remove());
 
         let pureText = cloneDOM.textContent.replace(/\s+/g, ' ').trim();
-        
-        const maxLength = 2000;
+        // 如果纯文本内容过长，进行截断并添加系统提示，告知用户文章内容较多需要自行阅读原文，保持对话的简洁和有效性
+        const maxLength = this.chatCfg.pageContextMaxLength;
         if (pureText.length > maxLength) {
-            // 从配置读取截断提示文字
             pureText = pureText.substring(0, maxLength) + '\n\n' + this.chatCfg.contextTemplate.truncateMsg;
         }
-
         return `[当前页面标题: ${title}]\n[页面纯净正文]: ${pureText}`;
     }
-
 }
 
 window.Live2DChat = Live2DChat;

@@ -12,7 +12,16 @@
   "chat": {
     "storageKey": "waifu_chat_history",
     "maxHistory": 20,
+    "pageContextMaxLength": 3000,
+    "pageContextSelector": "#article-container",
     "searchJsonPath": "/search.json",
+    "welcomeMsg": "欢迎来到洛天的小窝！这里是小洛喵~ 请问有什么需要帮助你的？",
+    "welcomeOptions": [
+      { "display": "做个自我介绍", "send": "请你做一个自我介绍吧。" },
+      { "display": "总结文章内容", "send": "请你总结一下这篇文章的主要内容吧。 || 这篇文章讲述了什么内容呀？ || 帮我梳理一下这篇文章的内容吧。" },
+      { "display": "介绍页面功能", "send": "当前这个页面是干什么用的呀？ || 请你介绍一下当前的页面吧。" },
+      { "display": "随便聊点什么", "send": "让我们随便聊点什么吧。" }
+    ],
     "systemPrompt": [
       "你是本博客的看板猫娘小洛，性格活泼、俏皮、可爱且礼貌。请使用口语化、生动的中文与用户交流。",
       "【全局知识库】",
@@ -37,7 +46,7 @@
       "searchContextTitle": "=== 博客全局检索结果 ===",
       "instruction": "基于\"当前阅读页面\"或\"全局检索\"作答。补充上下文：",
       "userQuestion": "用户实际提问:",
-      "truncateMsg": "[系统提示：页面内容过长已截断。请告知用户文章太长未尽的信息需自行阅读原文。]"
+      "truncateMsg": "[系统提示：页面内容过长已截断。请礼貌告知用户文章太长，未尽的信息需自行阅读原文。]"
     }
   }
 }
