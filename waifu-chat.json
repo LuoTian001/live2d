@@ -14,12 +14,13 @@
     "maxHistory": 20,
     "pageContextMaxLength": 3000,
     "pageContextSelector": "#article-container",
-    "searchJsonPath": "/search.json",
+    "searchXmlPath": "/search.xml",
     "welcomeMsg": "欢迎来到洛天的小窝！这里是小洛喵~ 请问有什么需要帮助你的？",
     "welcomeOptions": [
       { "display": "做个自我介绍", "send": "请你做一个自我介绍吧。" },
       { "display": "总结文章内容", "send": "请你总结一下这篇文章的主要内容吧。 || 这篇文章讲述了什么内容呀？ || 帮我梳理一下这篇文章的内容吧。" },
       { "display": "介绍页面功能", "send": "当前这个页面是干什么用的呀？ || 请你介绍一下当前的页面吧。" },
+      { "display": "帮我找下文章", "send": "帮我找下博客中有关课程答案的文章 || 帮我找下博客中有关hexo博客配置的文章" },
       { "display": "随便聊点什么", "send": "让我们随便聊点什么吧。" }
     ],
     "systemPrompt": [

@@ -54,7 +54,7 @@ class Live2DChat {
             maxHistory: 20,
             pageContextMaxLength: 3000,
             pageContextSelector: "#article-container",
-            searchJsonPath: "/search.json",
+            searchXmlPath: "/search.xml",
             welcomeMsg: "欢迎来到洛天的小窝！这里是小洛喵~ 请问有什么需要帮助你的？",
             welcomeOptions: [
                 { display: "做个自我介绍", send: "请你做一个自我介绍吧。" },
@@ -219,13 +219,37 @@ class Live2DChat {
         }
     }
     
-    // 初始化博客索引，尝试加载 search.json 文件以支持 RAG 功能，如果加载失败则降级为无索引模式
+    // 初始化博客索引，尝试加载 search.xml 文件以支持 RAG 功能，如果加载失败则降级为无索引模式
     async initBlogIndex() {
         try {
-            const res = await fetch(this.chatCfg.searchJsonPath);
-            this.blogIndex = await res.json();
+            const res = await fetch(this.chatCfg.searchXmlPath);
+            if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+            
+            const xmlText = await res.text();
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+            
+            // 提取所有 entry 节点
+            const entries = xmlDoc.querySelectorAll("entry");
+            this.blogIndex = Array.from(entries).map(entry => {
+                const titleNode = entry.querySelector("title");
+                const contentNode = entry.querySelector("content");
+                
+                let pureText = "";
+                if (contentNode) {
+                    const rawHtml = contentNode.textContent || "";
+                    const tempDoc = parser.parseFromString(rawHtml, "text/html");
+                    tempDoc.querySelectorAll('script, style, noscript, link, iframe, svg').forEach(el => el.remove());
+                    pureText = tempDoc.body.textContent.replace(/\s+/g, ' ').trim();
+                }
+
+                return {
+                    title: titleNode ? titleNode.textContent.trim() : "",
+                    content: pureText
+                };
+            });
         } catch (e) {
-            console.warn(`无法加载 ${this.chatCfg.searchJsonPath}，RAG 功能降级。`);
+            console.warn(`无法加载 ${this.chatCfg.searchXmlPath}，RAG 功能降级。`, e);
         }
     }
 
@@ -237,8 +261,8 @@ class Live2DChat {
             (post.content && post.content.includes(keyword))
         );
         if (matched.length === 0) return "";
-        return matched.slice(0, 2).map(p => 
-            `[标题: ${p.title}]\n内容: ${p.content.replace(/<[^>]+>/g, '').substring(0, 300)}...`
+        return matched.slice(0, 6).map(p => 
+            `[标题: ${p.title}]\n内容: ${p.content.replace(/<[^>]+>/g, '').substring(0, 800)}...`
         ).join("\n\n");
     }
 

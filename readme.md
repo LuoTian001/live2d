@@ -26,7 +26,7 @@
 * **moc3 模型支持**：对接 Cubism SDK for Web (v5)，支持渲染现代 Live2D 模型。适配 butterfly 的 PJAX 功能。
 * **AI 对话交互**：
   * **RAG 页面上下文感知**：自动抓取当前阅读文章正文内容，AI 能够直接回答“这篇文章讲了什么”。
-  * **RAG 全局知识库检索**：结合 Hexo `search.json`，实现博客全站内容的关联问答。
+  * **RAG 全局知识库检索**：结合 Hexo `search.xml`，实现博客全站内容的关联问答。
   * **Markdown 语法解析**：AI 回答支持加粗、代码块、列表等标准 Markdown 语法。
 * **UI 设计适配**：适配 Butterfly 的暗黑/白天模式切换，具备边界防遮挡检测。
 * **自定义配置**：提供提示词（System Prompt）、欢迎语、快捷回复等选项。可通过 JSON 热更新，无需修改核心逻辑代码。
@@ -157,15 +157,16 @@ inject:
 同时确保你已经安装 `hexo-generator-search` 插件，并在 `_config.butterfly.yml` 中正确配置了 `search.path`。这是 AI RAG 全局检索功能的依赖：
 ```bash
 cd 你的博客目录/
-npm install hexo-generator-searchdb --save
+npm install hexo-generator-search --save
 ```
 ```yaml
 search:
   use: local_search
-  path: search.json
+  path: search.xml
   field: post
-  content: true
-  format: html
+  content: false
+  format: striptags
+  limit: 1000
 
 local_search:
   enable: true
@@ -188,7 +189,7 @@ AI 的行为逻辑、身份设定、UI 文本以及上下文处理策略由 `wai
 | **`chat.maxHistory`** | 存储在本地的最大历史对话消息对象数量（防止 Token 溢出与存储爆满）。 |
 | **`chat.pageContextSelector`** | **RAG核心**：当前页面阅读器抓取的 DOM 目标选择器，前端将提取其内部纯文本。 |
 | **`chat.pageContextMaxLength`** | **RAG核心**：抓取页面正文的最大字符截断长度，超过部分将被截断并追加系统提示。 |
-| **`chat.searchJsonPath`** | Hexo 全站索引文件路径（需配合 `hexo-generator-search`），用于全局知识库匹配。 |
+| **`chat.searchXmlPath`** | Hexo 全站索引文件路径（需配合 `hexo-generator-search`），用于全局知识库匹配。 |
 | **`chat.welcomeMsg`** | 访客首次打开聊天框时，AI 主动发送的第一条破冰消息。 |
 | **`chat.welcomeOptions`** | 预设快捷按钮数组。`display`为按钮文本，`send`为实际发送指令（使用`\|\|`分割来进行随机发送）。|
 | **`chat.systemPrompt`** | 系统人设与输出约束提示词。提示词每行以数组形式给出。|
