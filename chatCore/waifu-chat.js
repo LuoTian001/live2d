@@ -3,8 +3,8 @@ class Live2DChat {
 
     // 允许外部通过构造函数传入配置项，增强灵活性和兼容性
     constructor(config) {
-        // 允许外部传入 JSON 路径，默认为同目录下的 waifu-chat.json
-        this.configUrl = config.configUrl || '/waifu-chat.json'; 
+        // 允许外部传入 JSON 路径
+        this.configUrl = config.configUrl || '../config/waifu-chat.json'; 
         // 允许直接从 JS 传入覆盖 API 配置 (兼容旧逻辑)
         this.apiUrlOverride = config.apiUrl;
         this.clientUuidOverride = config.clientUuid;

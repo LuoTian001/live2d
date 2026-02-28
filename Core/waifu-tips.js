@@ -45,7 +45,7 @@
         }
 
         async loadModelList() {
-            let o = await fetch(`${this.cdnPath}model_list.json`);
+            let o = await fetch(`${this.cdnPath}config/model_list.json`);
             this.modelList = await o.json();
             console.log();
         }

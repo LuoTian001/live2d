@@ -1,12 +1,14 @@
 // source/js/live2d.js
 if (typeof window.live2d_initialized === 'undefined') {
     window.live2d_initialized = true;
+    const scriptTag = document.currentScript || document.querySelector('script[src*="live2d.js"]');
+    const basePath = scriptTag ? scriptTag.getAttribute('src').replace(/live2d\.js.*$/, '') : '/live2d/';
     function initLive2d() {
-        fetch('/live2d/live2d.json')
+        fetch(basePath + 'live2d.json')
             .then(response => response.json())
             .then(userConfig => {
                 const cdnPath = userConfig.base.cdnPath;
-                const localPath = userConfig.base.localPath;
+                const localPath = basePath;
                 const config = {
                     path: {
                         homePath: userConfig.base.homePath || "/",
