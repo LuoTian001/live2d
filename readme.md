@@ -2,7 +2,7 @@
 
 &#8195;&#8195;本项目基于 [live2d-widget-v3](https://github.com/letere-gzj/live2d-widget-v3) 二次开发，接入Live2D AI 对话功能，支持上下文对话、Markdown 渲染以及全站 RAG（检索增强生成）检索。
 
-&#8195;&#8195;此项目仅支持在桌面端启用 Lived2D 模型与 AI 聊天功能，移动端将自动禁用以保证性能与用户体验。如果你仅需部署一个具备**完整 RAG 功能的 AI 聊天插件且适配移动端**，同时无 Live2D 接入，可以参考我的另一个项目 👉 [hexo-AIChat-Plugin](https://github.com/LuoTian001/hexo-AIChat-Plugin)。如果想在桌面端使用本项目且在移动端提供 AI 聊天功能，请参考 readme 3.3 节的配置方法。
+&#8195;&#8195;此项目仅支持在桌面端启用 Lived2D 模型与 AI 聊天功能，移动端将自动禁用以保证性能与用户体验。如果你仅需部署一个具备**完整 RAG 功能的 AI 聊天插件且适配移动端**，同时无 Live2D 接入，可以参考我的另一个项目 👉 [hexo-AIChat-Plugin](https://github.com/LuoTian001/hexo-AIChat-Plugin)。如果想在桌面端使用本项目且在移动端提供 AI 聊天功能，请参考 [readme 3.3 节](#33-移动端适配) 的配置方法。
 
 - 模型演示地址：[洛天的小窝](https://www.luotian.cyou)、[GitHub 博客](https://luotian001.github.io)
 - live2d 基础配置教程：[Live2D moc3 模型部署教程 — 基于 Hexo Butterfly 主题](https://www.luotian.cyou/post/moc3-for-butterfly.html)
