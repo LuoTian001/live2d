@@ -1,6 +1,7 @@
 # Live2D Widget with AI Chat
 
 &#8195;&#8195;本项目基于 [live2d-widget-v3](https://github.com/letere-gzj/live2d-widget-v3) 二次开发，接入Live2D AI 对话功能，支持上下文对话、Markdown 渲染以及全站 RAG（检索增强生成）检索。
+&#8195;&#8195;如果你仅需部署一个具备完整 RAG 功能的 AI 聊天插件，且无 Live2D 接入，可以参考我的另一个项目 👉 [hexo-AIChat-Plugin](https://github.com/LuoTian001/hexo-AIChat-Plugin)。
 - 模型演示地址：[洛天的小窝](https://www.luotian.cyou)、[GitHub 博客](https://luotian001.github.io)
 - live2d 基础配置教程：[Live2D moc3 模型部署教程 — 基于 Hexo Butterfly 主题](https://www.luotian.cyou/post/moc3-for-butterfly.html)
 - live2d AI 功能配置教程：[Live2D AI 聊天功能配置教程 — 基于 FastAPI + DeepSeek](https://www.luotian.cyou/post/live2d-ai-chat.html)
@@ -37,7 +38,7 @@
 
 &#8195;&#8195;项目采用模块化设计，分离基础渲染层与 AI 逻辑层。主要目录结构与各文件功能说明如下：
 ```text
-live2d/
+live2d-widget-AIChat/
 ├── Core/                      # 基础渲染与交互层
 │   ├── live2dcubismcore.js    # Live2D Cubism 官方核心 Web 库
 │   ├── live2d-sdk.js          # Live2D 渲染与控制 SDK
