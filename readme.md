@@ -7,8 +7,8 @@
 - 示例Live 2D模型地址：[Allium](https://www.bilibili.com/video/BV1S8411H7zf/)；作者：[Yuri幽里_official](https://space.bilibili.com/1815643596)
 
 > [!TIP]
->  + 此项目仅支持 moc3 模型，不支持旧版 moc 模型，AI 功能目前仅支持 Deepseek 后端服务，不支持其他 LLM 服务。
->  + AI 功能目前需要<font color="red">**后端服务器**支持</font>，请确保已经按照 [后端配置教程](https://www.luotian.cyou/post/live2d-ai-chat.html) 部署了<font color="red"> FastAPI + DeepSeek 后端服务</font>
+>  + 此项目仅支持 **moc3 模型**，不支持旧版 moc 模型，AI 功能目前仅支持 **Deepseek 后端服务**，不支持其他 LLM 服务。
+>  + AI 功能目前需要**后端服务器**支持，请确保已经按照 [后端配置教程](https://www.luotian.cyou/post/live2d-ai-chat.html) 部署了 **FastAPI + DeepSeek 后端服务**
 
 <table style="width: 100%; text-align: center;">
   <tr><center>
@@ -23,15 +23,15 @@
 
 ## ⭐ 核心功能
 
-* **1. moc3 模型支持：**对接 Cubism SDK for Web (v5)，支持渲染现代 Live2D 模型。适配 butterfly 的 PJAX 功能。
+* **1. moc3 模型支持：** 对接 Cubism SDK for Web (v5)，支持渲染现代 Live2D 模型。适配 butterfly 的 PJAX 功能。
 * **2. AI 对话交互：**
-  * **RAG 页面上下文感知：**自动抓取当前阅读文章正文内容，AI 能够直接回答“这篇文章讲了什么”。
-  * **RAG 全局知识库检索：**结合 Hexo `search.xml`，实现博客全站内容的关联问答。
-  * **Markdown 语法解析：**AI 回答支持加粗、代码块、列表等标准 Markdown 语法。
-* **3. UI 适配：**适配 Butterfly 的暗黑/白天模式切换，具备边界防遮挡检测。
-* **4. PJAX 适配：**支持 Hexo + Butterfly 主题的 PJAX 无刷新加载。
-* **5. 自定义配置：**提供提示词（System Prompt）、欢迎语、快捷回复等配置选项，可通过 JSON 热更新。
-* **6. 轻量级前端集成：**通过 bottom 接入，无需修改主题源码。且 AI 功能与 Live2D 核心模块完全解耦，可根据需求选择性启用。
+  * **RAG 页面上下文感知：** 自动抓取当前阅读文章正文内容，AI 能够直接回答“这篇文章讲了什么”。
+  * **RAG 全局知识库检索：** 结合 Hexo `search.xml`，实现博客全站内容的关联问答。
+  * **Markdown 语法解析：** AI 回答支持加粗、代码块、列表等标准 Markdown 语法。
+* **3. UI 适配：** 适配 Butterfly 的暗黑/白天模式切换，具备边界防遮挡检测。
+* **4. PJAX 适配：** 支持 Hexo + Butterfly 主题的 PJAX 无刷新加载。
+* **5. 自定义配置：** 提供提示词（System Prompt）、欢迎语、快捷回复等配置选项，可通过 JSON 热更新。
+* **6. 轻量级前端集成：** 通过 bottom 接入，无需修改主题源码。且 AI 功能与 Live2D 核心模块完全解耦，可根据需求选择性启用。
 
 ## 📂 文件说明
 
@@ -102,43 +102,43 @@ local_search:
 
 | 参数 | 说明 |
 | --- | --- |
-| `base.cdnPath` | 外部资源的 CDN 加速路径指向地址 |
-| `base.localPath` | 本地资源路径的相对或绝对地址 |
-| `base.homePath` | 博客首页的路由地址 |
-| `tools` | 侧边工具栏启用的功能按钮标识数组 |
-| `drag.enable` | 是否开启看板娘拖拽功能 |
-| `drag.direction` | 允许拖拽的方向数组 |
-| `switchType` | 模型与材质的切换触发规则 |
-| `chat.apiUrl` | 后端 AI 对话接口的默认请求路由地址 |
+| `base.cdnPath` | 外部资源的 CDN 加速路径指向地址，默认为本仓库main分支 |
+| `base.localPath` | 本地资源路径的相对或绝对地址，如果你按照前述教程进行了部署，则地址为`/live2d/`|
+| `base.homePath` | 博客首页的路由地址，默认为 `/` |
+| `tools` | 侧边工具栏启用的功能按钮标识数组<br>`chat`：核心交互工具，点击唤醒 AI 聊天窗口界面。<br>`hitokoto`：点击后看板娘将请求并展示一条随机的一言文本或毒鸡汤。<br>`express`：点击随机切换当前模型内置的特殊表情集。<br>`info`：点击跳转至博客默认的关于页面或站长信息页。<br>`quit`：点击后彻底隐藏并关闭看板娘挂件。|
+| `drag.enable` | 是否开启看板娘拖拽功能，默认`false` |
+| `drag.direction` | 允许拖拽的方向数组，`["x", "y"]`表示允许 x 方向和 y 方向拖拽 |
+| `switchType` | 模型与材质的切换触发规则，默认为`order`顺序切换 |
+| `chat.apiUrl` | 后端 AI 对话接口的默认请求路由地址，需替换为`https://你的博客域名/api/chat` |
 
 #### 2. 进阶配置 `/config`
 
 &#8195;&#8195;包含更详细的语料、模型列表与 AI 逻辑设置。
 
-**`config/waifu-chat.json` (AI 对话模块配置)**
+**`config/waifu-chat.json` (AI 对话配置)**
 
 | 参数 | 说明 |
 | --- | --- |
-| `api.url` | 后端 AI 对话接口的请求路由 |
+| `api.url` | 后端 AI 对话接口的请求路由，默认`/api/chat` |
 | `ui.title` | 聊天窗口顶部栏显示的标题文本 |
 | `ui.placeholder` | 底部消息输入框的占位引导提示文本 |
 | `ui.errorMsg` | 后端接口响应异常或网络阻断时的原生错误提示语 |
-| `ui.typingSpeed` | 模拟打字机动画的单字符输出延迟时间毫秒值 |
+| `ui.typingSpeed` | 模拟打字机动画的单字符输出延迟时间毫秒值，数值越大打字越慢，默认为`25` |
 | `chat.storageKey` | 浏览器 LocalStorage 持久化存储对话历史记录的键名 |
-| `chat.maxHistory` | 存储在本地的最大历史对话消息对象数量限制 |
-| `chat.pageContextMaxLength` | 抓取页面正文的最大字符截断长度 |
-| `chat.pageContextSelector` | 当前页面阅读器抓取的 DOM 目标选择器 |
-| `chat.searchXmlPath` | Hexo 全站索引文件路径用于全局知识库匹配 |
+| `chat.maxHistory` | 存储在本地的最大历史对话消息对象数量限制，默认为`20` |
+| `chat.pageContextMaxLength` | **RAG 核心配置：** 抓取页面正文的最大字符截断长度，数值越高 RAG 检索越全面，但务必注意 deepseek 的单次请求 token 上限以及 token 消耗情况，默认为`3000` |
+| `chat.pageContextSelector` | **RAG 核心配置：** 当前页面阅读器抓取的 DOM 目标选择器，默认为`#article-container`，如果你的博客未采用 Butterfly 主题或更改了文章容器的 ID/Class，请务必同步修改此字段 |
+| `chat.searchXmlPath` | Hexo 全站索引文件路径用于全局知识库匹配，默认为`/search.xml` |
 | `chat.welcomeMsg` | 访客首次打开聊天框时 AI 主动发送的第一条破冰消息 |
-| `chat.welcomeOptions` | 预设快捷按钮数组包含显示文本与实际发送指令 |
-| `chat.systemPrompt` | 系统人设与输出约束提示词数组 |
-| `chat.contextTemplate` | RAG 隐式上下文拼装模板对象规范化拼接格式 |
+| `chat.welcomeOptions` | 预设快捷按钮数组包含显示文本与实际发送指令<br>`display`：按钮在界面上显示的文本内容<br>`send`：按钮实际发送给 AI 的指令内容，可设置多条 send 内容，之间通过`\|\|`分隔 |
+| `chat.systemPrompt` | 系统人设与输出约束提示词数组，如果需要分行显示，每条指令请用`,`隔开 |
+| `chat.contextTemplate` | RAG 隐式上下文拼装模板对象规范化拼接格式，基本无需修改<br>`truncateMsg`：用于提示用户文章太长已产生截断 |
 
 **`config/waifu-tips.json` (基础交互语料配置)**
 
 | 参数 | 说明 |
 | --- | --- |
-| `mouseover` | 鼠标悬停在特定 DOM 元素上时触发的提示语配置 |
+| `mouseover` | 鼠标悬停在特定 DOM 元素上时触发的提示语配置<br>`selector`：指定触发提示语的 DOM 元素选择器，可以自定义 DOM 元素以触发不同交互<br>`text`：显示的提示语信息 |
 | `click` | 鼠标点击特定 DOM 元素时触发的提示语配置 |
 | `seasons` | 根据特定日期或节日触发的季节性提示语配置 |
 | `time` | 根据当前时间段触发的日常问候提示语配置 |
