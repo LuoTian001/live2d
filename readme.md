@@ -6,6 +6,10 @@
 - live2d AI 功能配置教程：[Live2D AI 聊天功能配置教程 — 基于 FastAPI + DeepSeek](https://www.luotian.cyou/post/live2d-ai-chat.html)
 - 示例Live 2D模型地址：[Allium](https://www.bilibili.com/video/BV1S8411H7zf/)；作者：[Yuri幽里_official](https://space.bilibili.com/1815643596)
 
+> [!TIP]
+>  + 此项目仅支持 moc3 模型，不支持旧版 moc 模型，AI 功能目前仅支持 Deepseek 后端服务，不支持其他 LLM 服务。
+>  + AI 功能目前需要<font color="red">**后端服务器**支持</font>，请确保已经按照 [后端配置教程](https://www.luotian.cyou/post/live2d-ai-chat.html) 部署了<font color="red"> FastAPI + DeepSeek 后端服务</font>
+
 <table style="width: 100%; text-align: center;">
   <tr><center>
     <td><img src="/example-img/ai-chat-1.png" width="100%" /><br><b>示例演示 1</b></td>
@@ -17,38 +21,38 @@
   </center></tr>
 </table>
 
-> [!TIP]
->  + 此项目仅支持 moc3 模型，不支持旧版 moc 模型
->  + AI 功能目前需要后端服务器支持，请确保已经按照 [教程](https://www.luotian.cyou/post/live2d-ai-chat.html) 部署了 FastAPI + DeepSeek 后端服务，并正确配置了 API 地址和鉴权 UUID
-
 ## ⭐ 核心功能
 
-* **moc3 模型支持**：对接 Cubism SDK for Web (v5)，支持渲染现代 Live2D 模型。适配 butterfly 的 PJAX 功能。
-* **AI 对话交互**：
-  * **RAG 页面上下文感知**：自动抓取当前阅读文章正文内容，AI 能够直接回答“这篇文章讲了什么”。
-  * **RAG 全局知识库检索**：结合 Hexo `search.xml`，实现博客全站内容的关联问答。
-  * **Markdown 语法解析**：AI 回答支持加粗、代码块、列表等标准 Markdown 语法。
-* **UI 设计适配**：适配 Butterfly 的暗黑/白天模式切换，具备边界防遮挡检测。
-* **自定义配置**：提供提示词（System Prompt）、欢迎语、快捷回复等选项。可通过 JSON 热更新，无需修改核心逻辑代码。
-* **轻量级前端集成**：通过 bottom 接入，无需修改主题源码。且 AI 功能与 Live2D 核心模块完全解耦，可根据需求选择性启用。
+* **1. moc3 模型支持：**对接 Cubism SDK for Web (v5)，支持渲染现代 Live2D 模型。适配 butterfly 的 PJAX 功能。
+* **2. AI 对话交互：**
+  * **RAG 页面上下文感知：**自动抓取当前阅读文章正文内容，AI 能够直接回答“这篇文章讲了什么”。
+  * **RAG 全局知识库检索：**结合 Hexo `search.xml`，实现博客全站内容的关联问答。
+  * **Markdown 语法解析：**AI 回答支持加粗、代码块、列表等标准 Markdown 语法。
+* **3. UI 适配：**适配 Butterfly 的暗黑/白天模式切换，具备边界防遮挡检测。
+* **4. PJAX 适配：**支持 Hexo + Butterfly 主题的 PJAX 无刷新加载。
+* **5. 自定义配置：**提供提示词（System Prompt）、欢迎语、快捷回复等配置选项，可通过 JSON 热更新。
+* **6. 轻量级前端集成：**通过 bottom 接入，无需修改主题源码。且 AI 功能与 Live2D 核心模块完全解耦，可根据需求选择性启用。
 
 ## 📂 文件说明
 
 &#8195;&#8195;项目采用模块化设计，分离基础渲染层与 AI 逻辑层。主要目录结构与各文件功能说明如下：
 ```text
 live2d/
-├── Core/
-│   └── live2dcubismcore.js      # Live2D Cubism 官方核心 Web 库 (底层骨骼运算，请勿修改)
-├── model/                       # moc3 模型资源存放目录
-│   └── ...                      # 模型文件路径
-├── model_list.json              # 模型列表
-├── live2d-sdk.js                # Live2D 渲染与控制 SDK (基于 WebGL)
-├── waifu.css                    # 看板娘本体基础 UI 样式表
-├── waifu-tips.json              # 基础交互语料库 (基于时间段、页面点击、元素悬浮的固定提示语)
-├── waifu-tips.js                # 看板娘主控制逻辑 (负责组件初始化、挂载侧边工具栏事件)
-├── waifu-chat.css               # 🆕 AI 聊天窗口样式表 (含毛玻璃与暗黑模式适配)
-├── waifu-chat.json              # 🆕 AI 对话外置配置 (预设 System Prompt、欢迎语、快捷指令等)
-└── waifu-chat.js                # 🆕 AI 聊天核心引擎 (负责 RAG 文本抓取、API 请求封装、Markdown 解析与打字机渲染)
+├── Core/                      # 基础渲染与交互层
+│   ├── live2dcubismcore.js    # Live2D Cubism 官方核心 Web 库
+│   ├── live2d-sdk.js          # Live2D 渲染与控制 SDK
+│   ├── waifu-tips.js          # 看板娘主控制逻辑脚本
+│   └── waifu.css              # 看板娘本体基础 UI 样式表
+├── chatCore/                  # AI 聊天逻辑层
+│   ├── waifu-chat.js          # AI 聊天核心脚本
+│   └── waifu-chat.css         # AI 聊天窗口样式表
+├── config/                    # 进阶配置文件目录
+│   ├── model_list.json        # 模型列表与加载提示语配置
+│   ├── waifu-chat.json        # AI 对话模块配置
+│   └── waifu-tips.json        # 看板娘基础交互语料库
+├── model/                     # moc3 模型资源存放目录
+├── live2d.js                  # 项目前端总入口脚本
+└── live2d.json                # 基础全局配置文件
 ```
 
 ## 🚀 前端部署
@@ -69,92 +73,9 @@ skip_render:
 ```js
 inject:
   bottom:
-    - |
-      <script>
-      if (typeof window.live2d_initialized === 'undefined') {
-          window.live2d_initialized = true;
-          const cdnPath = "https://cdn.jsdelivr.net/gh/LuoTian001/live2d-widget-AIChat@main/"; // CDN 加速路径，指向本项目的 jsDelivr 镜像仓库
-          const localPath = "/live2d/"; // 本地资源路径，指向 Hexo 博客的 public 目录下的 live2d 文件夹
-          const config = {
-              path: {
-                  homePath: "/", // 博客首页路径，默认 "/"
-                  modelPath: localPath, // Live2D 模型资源路径，指向本地的 live2d/model/ 目录
-                  cssPath: localPath + "waifu.css", // 看板娘基础样式表路径
-                  tipsJsonPath: localPath + "waifu-tips.json", // 看板娘提示语料库路径
-                  tipsJsPath: localPath + "waifu-tips.js", // 看板娘主控制逻辑脚本路径
-                  chatJsPath: localPath + "waifu-chat.js", // AI 聊天核心引擎脚本路径
-                  chatCssPath: localPath + "waifu-chat.css", // AI 聊天样式表路径
-                  chatJsonPath: localPath + "waifu-chat.json", // AI 聊天配置文件路径
-                  live2dCorePath: cdnPath + "Core/live2dcubismcore.js", // Live2D 核心库路径
-                  live2dSdkPath: cdnPath + "live2d-sdk.js" // Live2D SDK 路径
-              },
-              tools: ["chat", "hitokoto", "express", "info", "quit"], // 侧边工具栏按钮配置
-              drag: { enable: false, direction: ["x", "y"] }, // 拖拽配置
-              switchType: "order" // 模型/材质切换方式
-          };
-          if (screen.width >= 768) {
-              window.addEventListener('load', () => {
-                  const initTask = () => {
-                      Promise.all([
-                          loadExternalResource(config.path.cssPath, "css"),
-                          loadExternalResource(config.path.live2dCorePath, "js"),
-                          loadExternalResource(config.path.live2dSdkPath, "js"),
-                          loadExternalResource(config.path.tipsJsPath, "js"),
-                          loadExternalResource(config.path.chatJsPath, "js"),
-                          loadExternalResource(config.path.chatCssPath, "css"),
-                          loadExternalResource("https://cdn.jsdelivr.net/npm/marked/marked.min.js", "js") // 加载 Marked.js 库
-                      ]).then(() => {
-                          if (typeof initWidget !== "undefined") {
-                              initWidget({
-                                  waifuPath: config.path.tipsJsonPath,
-                                  cdnPath: config.path.modelPath,
-                                  tools: config.tools,
-                                  dragEnable: config.drag.enable,
-                                  dragDirection: config.drag.direction,
-                                  switchType: config.switchType
-                              });
-                              if (typeof Live2DChat !== "undefined") {
-                                  window.live2dChatInstance = new Live2DChat({
-                                      apiUrl: 'https://你的域名/api/chat', // 后端 AI 对话接口地址，需与后端部署的 FastAPI 服务地址一致
-                                      clientUuid: '你的鉴权UUID', // 简易鉴权 UUID，需与后端 FastAPI 服务中设置的 UUID 一致
-                                      configUrl: config.path.chatJsonPath 
-                                  });
-                              }
-                          }
-                      }).catch(err => {
-                          console.error("Live2D 资源加载失败:", err);
-                      });
-                  };
-                  if (window.requestIdleCallback) {
-                      requestIdleCallback(initTask);
-                  } else {
-                      setTimeout(initTask, 500);
-                  }
-              });
-          }
-          function loadExternalResource(url, type) {
-              return new Promise((resolve, reject) => {
-                  let tag;
-                  if (type === "css") {
-                      tag = document.createElement("link"); 
-                      tag.rel = "stylesheet"; 
-                      tag.href = url;
-                  } else if (type === "js") {
-                      tag = document.createElement("script"); 
-                      tag.src = url;
-                      tag.async = false; 
-                  }
-                  if (tag) {
-                      tag.onload = () => resolve(url); 
-                      tag.onerror = () => reject(url); 
-                      document.head.appendChild(tag);
-                  }
-              });
-          }
-      }
-      </script>
+    - <script src="/live2d/live2d.js" defer></script>
 ```
-&#8195;&#8195;同时确保你已经安装 `hexo-generator-search` 插件，并在 `_config.butterfly.yml` 中正确配置了 `search.path`。这是 AI RAG 全局检索功能的依赖：
+&#8195;&#8195;同时确保你已经安装 `hexo-generator-search` 插件，并在 `_config.butterfly.yml` 中正确配置了 `search.path`。这是 AI RAG 检索功能的依赖：
 ```bash
 cd 你的博客目录/
 npm install hexo-generator-search --save
@@ -175,39 +96,74 @@ local_search:
 
 ### 3.1 参数配置
 
-&#8195;&#8195;AI 的行为逻辑、身份设定、UI 文本以及上下文处理策略由 `waifu-chat.json` 配置，可进行自定义：
+#### 1. 基础配置 `live2d.json`
+
+&#8195;&#8195;负责全局路径控制与基础挂件行为定义。
 
 | 参数 | 说明 |
-| :--- | :--- |
-| **`api.url`** | 后端 AI 对话接口的请求路由。此配置优先级低于前端 JS 实例化的传入参数。 |
-| **`api.uuid`** | 客户端鉴权标识或 Token，将随请求头 `Authorization: Bearer <uuid>` 发送供后端校验。 |
-| **`ui.title`** | 聊天窗口顶部栏显示的标题文本。 |
-| **`ui.placeholder`** | 底部消息输入框的占位引导提示文本。 |
-| **`ui.errorMsg`** | 后端接口响应异常或网络阻断时，看板娘弹出的原生错误提示语。 |
-| **`ui.typingSpeed`** | 模拟打字机动画的单字符输出延迟时间（单位：毫秒）。 |
-| **`chat.storageKey`** | 浏览器 LocalStorage 持久化存储对话历史记录的键名。 |
-| **`chat.maxHistory`** | 存储在本地的最大历史对话消息对象数量（防止 Token 溢出与存储爆满）。 |
-| **`chat.pageContextSelector`** | **RAG核心**：当前页面阅读器抓取的 DOM 目标选择器，前端将提取其内部纯文本。 |
-| **`chat.pageContextMaxLength`** | **RAG核心**：抓取页面正文的最大字符截断长度，超过部分将被截断并追加系统提示。 |
-| **`chat.searchXmlPath`** | Hexo 全站索引文件路径（需配合 `hexo-generator-search`），用于全局知识库匹配。 |
-| **`chat.welcomeMsg`** | 访客首次打开聊天框时，AI 主动发送的第一条破冰消息。 |
-| **`chat.welcomeOptions`** | 预设快捷按钮数组。`display`为按钮文本，`send`为实际发送指令（使用`\|\|`分割来进行随机发送）。|
-| **`chat.systemPrompt`** | 系统人设与输出约束提示词。提示词每行以数组形式给出。|
-| **`chat.contextTemplate`** | RAG 隐式上下文拼装模板对象。用于规范化包含“页面正文”与“检索结果”的拼接格式。|
+| --- | --- |
+| `base.cdnPath` | 外部资源的 CDN 加速路径指向地址 |
+| `base.localPath` | 本地资源路径的相对或绝对地址 |
+| `base.homePath` | 博客首页的路由地址 |
+| `tools` | 侧边工具栏启用的功能按钮标识数组 |
+| `drag.enable` | 是否开启看板娘拖拽功能 |
+| `drag.direction` | 允许拖拽的方向数组 |
+| `switchType` | 模型与材质的切换触发规则 |
+| `chat.apiUrl` | 后端 AI 对话接口的默认请求路由地址 |
+
+#### 2. 进阶配置 `/config`
+
+&#8195;&#8195;包含更详细的语料、模型列表与 AI 逻辑设置。
+
+**`config/waifu-chat.json` (AI 对话模块配置)**
+
+| 参数 | 说明 |
+| --- | --- |
+| `api.url` | 后端 AI 对话接口的请求路由 |
+| `ui.title` | 聊天窗口顶部栏显示的标题文本 |
+| `ui.placeholder` | 底部消息输入框的占位引导提示文本 |
+| `ui.errorMsg` | 后端接口响应异常或网络阻断时的原生错误提示语 |
+| `ui.typingSpeed` | 模拟打字机动画的单字符输出延迟时间毫秒值 |
+| `chat.storageKey` | 浏览器 LocalStorage 持久化存储对话历史记录的键名 |
+| `chat.maxHistory` | 存储在本地的最大历史对话消息对象数量限制 |
+| `chat.pageContextMaxLength` | 抓取页面正文的最大字符截断长度 |
+| `chat.pageContextSelector` | 当前页面阅读器抓取的 DOM 目标选择器 |
+| `chat.searchXmlPath` | Hexo 全站索引文件路径用于全局知识库匹配 |
+| `chat.welcomeMsg` | 访客首次打开聊天框时 AI 主动发送的第一条破冰消息 |
+| `chat.welcomeOptions` | 预设快捷按钮数组包含显示文本与实际发送指令 |
+| `chat.systemPrompt` | 系统人设与输出约束提示词数组 |
+| `chat.contextTemplate` | RAG 隐式上下文拼装模板对象规范化拼接格式 |
+
+**`config/waifu-tips.json` (基础交互语料配置)**
+
+| 参数 | 说明 |
+| --- | --- |
+| `mouseover` | 鼠标悬停在特定 DOM 元素上时触发的提示语配置 |
+| `click` | 鼠标点击特定 DOM 元素时触发的提示语配置 |
+| `seasons` | 根据特定日期或节日触发的季节性提示语配置 |
+| `time` | 根据当前时间段触发的日常问候提示语配置 |
+| `message` | 包含控制台打开与文本复制等特殊事件的默认提示语 |
+
+**`config/model_list.json` (模型加载配置)**
+
+| 参数 | 说明 |
+| --- | --- |
+| `models` | 可用 Live2D 模型的目录名称数组 |
+| `messages` | 对应模型加载完毕后显示的专属提示语数组 |
 
 ### 3.2 注意事项
 
+- **AI 模块的低耦合说明**
+
+&#8195;&#8195;AI 对话引擎被完整抽离在 `chatCore` 目录下，如果你不想开启 AI 功能，只需在`live2d.json`中将 `tools.chat` 删除即可，看板娘依然可以作为普通的 Live2D 挂件正常运行。
+
 - **基础功能配置简化说明**
 
-&#8195;&#8195;本项目在原版底层框架上对 Live2D 功能进行了一定程度的默认简化。如果你需要进一步自定义模型，例如自定义 `.exp3.json` 触发专属表情、为 `.motion3.json` 动作绑定口型与音频、或调整模型在 Canvas 画布中的 `scale` 缩放与 `translate` 坐标偏移量等，请务必参阅原项目的详细文档 👉 [live2d-widget-v3 使用说明](https://github.com/letere-gzj/live2d-widget-v3)。
-
-- **AI 模块的低耦合性说明**
-
-&#8195;&#8195;AI 对话引擎 (`waifu-chat.*` 文件) 具有完全独立的生命周期。如果你在某些页面不想开启 AI 功能，只需在前端脚本注入时不加载这三个文件，看板娘依然可以作为普通的 Live2D 挂件正常运行。
+&#8195;&#8195;本项目在原有框架上对 Live2D 功能进行了一定程度的默认简化。如果你需要进一步自定义模型，例如自定义 `.exp3.json` 触发专属表情、为 `.motion3.json` 动作绑定口型与音频、或调整模型在 Canvas 画布中的 `scale` 缩放与 `translate` 坐标偏移量等，请务必参阅原项目的详细文档 👉 [live2d-widget-v3 使用说明](https://github.com/letere-gzj/live2d-widget-v3)。
 
 - **RAG 容器匹配说明**
 
-&#8195;&#8195;`waifu-chat.js` 中的本地阅读器默认通过 `#article-container` 选择器来提取当前页面的正文文本。如果你的 Hexo 博客未采用 Butterfly 主题，或者你在主题魔改中更改了文章主容器的 ID/Class，请务必在 `waifu-chat.json` 中同步修改 `pageContextSelector` 字段。同时需检查你的站点根目录是否存在 `search.xml` 文件（由 `hexo-generator-search` 生成），并将其路径正确配置到 `searchXmlPath` 字段。
+&#8195;&#8195;`waifu-chat.js` 中的本地阅读器默认通过 `#article-container` 选择器来提取当前页面的正文文本。如果你的 Hexo 博客未采用 Butterfly 主题，或者你在主题魔改中更改了文章主容器的 ID/Class，请务必在 `/config/waifu-chat.json` 中同步修改 `pageContextSelector` 字段。同时需检查你的站点根目录是否存在 `search.xml` 文件（由 `hexo-generator-search` 生成），并将其路径正确配置到 `searchXmlPath` 字段。
 
 ## ❤ 鸣谢与开源协议
 
@@ -219,4 +175,4 @@ local_search:
 
 &#8195;&#8195;如果你喜欢这个项目，欢迎点个 Star ⭐ 支持一下！如果你有任何问题、建议或者想要贡献代码，欢迎提交 Issue 或 Pull Request。
 
-> 本项目遵循 MIT 开源协议。
+&#8195;&#8195;本项目遵循 MIT 开源协议。
