@@ -1,6 +1,6 @@
 {
   "base": {
-    "cdnPath": "https://cdn.jsdelivr.net/gh/LuoTian001/live2d-widget-AIChat@debug/",
+    "cdnPath": "https://cdn.jsdelivr.net/gh/LuoTian001/live2d-widget-AIChat@main/",
     "localPath": "/live2d/",
     "homePath": "/"
   },
