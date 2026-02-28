@@ -1,0 +1,3 @@
+gitignore
+live2d-local.js
+/config/live2d-local.json
