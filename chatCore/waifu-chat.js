@@ -7,7 +7,6 @@ class Live2DChat {
         this.configUrl = config.configUrl || '../config/waifu-chat.json'; 
         // 允许直接从 JS 传入覆盖 API 配置 (兼容旧逻辑)
         this.apiUrlOverride = config.apiUrl;
-        this.clientUuidOverride = config.clientUuid;
         // 允许外部传入消息显示函数，兼容 Live2D 原有气泡提示
         this.showMessage = window.waifuShowMessage || console.log;
         this.blogIndex = [];
@@ -40,7 +39,6 @@ class Live2DChat {
     applyConfig(cfg) {
         // API 配置优先级：构造函数覆盖 > JSON 配置 > 内置默认值
         this.apiUrl = this.apiUrlOverride || cfg?.api?.url || '/api/chat';
-        this.clientUuid = this.clientUuidOverride || cfg?.api?.uuid || '';
         // UI 配置优先级：JSON 配置 > 内置默认值
         this.ui = Object.assign({
             title: "Relink 终端",
@@ -272,7 +270,7 @@ class Live2DChat {
         
         if (matched.length === 0) return "";
 
-        return matched.slice(0, 10).map(p => 
+        return matched.slice(0, 15).map(p => 
             `[标题: ${p.title}]\n[链接: ${p.url}]\n内容: ${p.content.replace(/<[^>]+>/g, '').substring(0, 300)}...`
         ).join("\n\n");
     }
@@ -427,7 +425,7 @@ class Live2DChat {
         try {
             const res = await fetch(this.apiUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${this.clientUuid}` },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ messages })
             });
 

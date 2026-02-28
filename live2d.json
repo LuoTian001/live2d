@@ -11,7 +11,6 @@
   },
   "switchType": "order",
   "chat": {
-    "apiUrl": "https://www.luotian.cyou/api/chat",
-    "clientUuid": "c0054f37-a746-4334-99d2-4abaa4994242"
+    "apiUrl": "https://www.luotian.cyou/api/chat"
   }
 }

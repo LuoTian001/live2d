@@ -1,7 +1,6 @@
 {
   "api": {
-    "url": "/api/chat",
-    "uuid": ""
+    "url": "/api/chat"
   },
   "ui": {
     "title": "Relink 终端",

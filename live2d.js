@@ -49,7 +49,6 @@ if (typeof window.live2d_initialized === 'undefined') {
                             if (typeof Live2DChat !== "undefined" && userConfig.chat) {
                                 window.live2dChatInstance = new Live2DChat({
                                     apiUrl: userConfig.chat.apiUrl,
-                                    clientUuid: userConfig.chat.clientUuid,
                                     configUrl: config.path.chatJsonPath
                                 });
                             }
