@@ -243,7 +243,14 @@ class Live2DChat {
 
                 return {
                     title: titleNode ? titleNode.textContent.trim() : "",
-                    url: urlNode ? urlNode.textContent.trim() : "",
+                    url: (() => {
+                        let rawUrl = urlNode ? urlNode.textContent.trim() : "";
+                        if (!rawUrl) return "";
+                        if (rawUrl.startsWith('/')) {
+                            return window.location.origin + rawUrl;
+                        }
+                        return rawUrl;
+                    })(),
                     content: pureText
                 };
             });
