@@ -127,7 +127,7 @@ local_search:
 | `ui.placeholder` | 底部消息输入框的占位引导提示文本 |
 | `ui.errorMsg` | 后端接口响应异常或网络阻断时的原生错误提示语 |
 | `ui.typingSpeed` | 模拟打字机动画的单字符输出延迟时间毫秒值，数值越大打字越慢，默认为`25` |
-| `includeCodeBlocks` | 是否向 AI 提交文章中的代码块，关闭可节省 token，默认为`false` |
+| `chat.includeCodeBlocks` | 是否向 AI 提交文章中的代码块，关闭可节省 token，默认为`false` |
 | `chat.storageKey` | 浏览器 LocalStorage 持久化存储对话历史记录的键名 |
 | `chat.maxHistory` | 存储在本地的最大历史对话消息对象数量限制，默认为`20` |
 | `chat.pageContextMaxLength` | **RAG 核心配置：** 抓取页面正文的最大字符截断长度，数值越高 RAG 检索越全面，但务必注意 deepseek 的单次请求 token 上限以及 token 消耗情况，默认为`3000` |
