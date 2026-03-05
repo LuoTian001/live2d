@@ -127,13 +127,14 @@ local_search:
 | `ui.placeholder` | 底部消息输入框的占位引导提示文本 |
 | `ui.errorMsg` | 后端接口响应异常或网络阻断时的原生错误提示语 |
 | `ui.typingSpeed` | 模拟打字机动画的单字符输出延迟时间毫秒值，数值越大打字越慢，默认为`25` |
+| `includeCodeBlocks` | 是否向 AI 提交文章中的代码块，关闭可节省 token，默认为`false` |
 | `chat.storageKey` | 浏览器 LocalStorage 持久化存储对话历史记录的键名 |
 | `chat.maxHistory` | 存储在本地的最大历史对话消息对象数量限制，默认为`20` |
 | `chat.pageContextMaxLength` | **RAG 核心配置：** 抓取页面正文的最大字符截断长度，数值越高 RAG 检索越全面，但务必注意 deepseek 的单次请求 token 上限以及 token 消耗情况，默认为`3000` |
 | `chat.pageContextSelector` | **RAG 核心配置：** 当前页面阅读器抓取的 DOM 目标选择器，默认为`#article-container`，如果你的博客未采用 Butterfly 主题或更改了文章容器的 ID/Class，请务必同步修改此字段 |
 | `chat.searchXmlPath` | Hexo 全站索引文件路径用于全局知识库匹配，默认为`/search.xml` |
 | `chat.welcomeMsg` | 访客首次打开聊天框时 AI 主动发送的第一条破冰消息 |
-| `chat.welcomeOptions` | 预设快捷按钮数组包含显示文本与实际发送指令<br>`display`：按钮在界面上显示的文本内容<br>`send`：按钮实际发送给 AI 的指令内容，可设置多条 send 内容，之间通过`\|\|`分隔 |
+| `chat.welcomeOptions` | 预设快捷按钮数组包含显示文本与实际发送指令<br>`display`：按钮在界面上显示的文本内容<br>`send`：按钮实际发送给 AI 的指令内容，可设置多条 send 内容，会随机抽取一条发送 |
 | `chat.systemPrompt` | 系统人设与输出约束提示词数组，如果需要分行显示，每条指令请用`,`隔开 |
 | `chat.contextTemplate` | RAG 隐式上下文拼装模板对象规范化拼接格式，基本无需修改<br>`truncateMsg`：用于提示用户文章太长已产生截断 |
 

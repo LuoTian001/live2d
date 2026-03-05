@@ -11,6 +11,6 @@
   },
   "switchType": "order",
   "chat": {
-    "apiUrl": "https://www.luotian.cyou/api/chat"
+    "apiUrl": "https://api.luotian.cyou/api/chat"
   }
 }

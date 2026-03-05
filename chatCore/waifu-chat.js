@@ -48,6 +48,7 @@ class Live2DChat {
         }, cfg?.ui || {});
         // Chat 配置优先级：JSON 配置 > 内置默认值
         this.chatCfg = Object.assign({
+            includeCodeBlocks: false,
             storageKey: "waifu_chat_history",
             maxHistory: 20,
             pageContextMaxLength: 3000,
@@ -115,18 +116,14 @@ class Live2DChat {
         this.chatInput = document.getElementById("waifu-chat-input");
         // 事件委托：监听聊天历史区域的点击事件，捕捉快速选项按钮的点击，支持预设消息的快速发送，提升用户体验和引导性
         this.chatHistoryDOM.addEventListener("click", (e) => {
-            const target = e.target.closest('.waifu-chat-quick-action');
-            if (target) {
-                let textToSend = target.getAttribute("data-send");
-                if (!textToSend) return;
-                // 解析 "||" 并随机抽取一条发送
-                if (textToSend.includes("||")) {
-                    const parts = textToSend.split("||").map(s => s.trim());
-                    textToSend = parts[Math.floor(Math.random() * parts.length)];
+                const target = e.target.closest('.waifu-chat-quick-action');
+                if (target) {
+                    let textToSend = target.getAttribute("data-send");
+                    if (!textToSend) return;
+                    
+                    this.sendRequest(textToSend);
+                    this.initBoundsManagement();
                 }
-                this.sendRequest(textToSend);
-                this.initBoundsManagement();
-            }
         });
         // 初始渲染聊天历史，确保界面与数据同步
         this.renderHistory();
@@ -237,8 +234,12 @@ class Live2DChat {
                 if (contentNode) {
                     const rawHtml = contentNode.textContent || "";
                     const tempDoc = parser.parseFromString(rawHtml, "text/html");
-                    tempDoc.querySelectorAll('script, style, noscript, link, iframe, svg').forEach(el => el.remove());
-                    pureText = tempDoc.body.textContent.replace(/\s+/g, ' ').trim();
+                    let noiseSelectors = 'script, style, noscript, link, iframe, svg';
+                    if (!this.chatCfg.includeCodeBlocks) {
+                        noiseSelectors += ', pre, figure.highlight, div.highlight';
+                    }
+                    tempDoc.querySelectorAll(noiseSelectors).forEach(el => el.remove());
+                    pureText = this.cleanTextContent(tempDoc.body.textContent);
                 }
 
                 return {
@@ -263,7 +264,7 @@ class Live2DChat {
     searchLocalBlog(keyword) {
         if (!this.blogIndex.length) return "";
         let searchTerms = keyword;
-        const titleMatch = keyword.match(/《(.*?)》/);
+        const titleMatch = keyword.match(/\[(.*?)\]/);
         if (titleMatch && titleMatch[1]) {
             searchTerms = titleMatch[1].trim();
         } else {
@@ -365,17 +366,29 @@ class Live2DChat {
                 
                 // 如果消息包含选项且不是正在输入的状态，渲染选项按钮，快速发送预设消息
                 if (msg.options && msg.options.length > 0 && !msg.isTyping) {
-                    let optionsHTML = `<div class="waifu-welcome-options" style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(128,128,128,0.3);">`;
-                    msg.options.forEach(opt => {
-                        optionsHTML += `<div style="margin-top: 6px;">
-                            <a href="javascript:void(0);" class="waifu-chat-quick-action" data-send="${opt.send}" style="color: #0078D7; text-decoration: none; font-size: 0.95em; cursor: pointer;">
-                                👉 ${opt.display}
-                            </a>
-                        </div>`;
-                    });
-                    optionsHTML += `</div>`;
-                    innerHTML += optionsHTML;
-                }
+                        let optionsHTML = `<div class="waifu-welcome-options" style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(128,128,128,0.3);">`;
+                        msg.options.forEach(opt => {
+                            let sendText = opt.send;
+
+                            if (Array.isArray(sendText)) {
+                                sendText = sendText[Math.floor(Math.random() * sendText.length)];
+                            } else if (typeof sendText === 'string' && sendText.includes("||")) {
+                                // 兼容老版本 "||" 分割格式
+                                const parts = sendText.split("||").map(s => s.trim());
+                                sendText = parts[Math.floor(Math.random() * parts.length)];
+                            }
+
+                            let safeSend = String(sendText).replace(/"/g, '&quot;');
+
+                            optionsHTML += `<div style="margin-top: 6px;">
+                                <a href="javascript:void(0);" class="waifu-chat-quick-action" data-send="${safeSend}" style="color: #0078D7; text-decoration: none; font-size: 0.95em; cursor: pointer;">
+                                    👉 ${opt.display}
+                                </a>
+                            </div>`;
+                        });
+                        optionsHTML += `</div>`;
+                        innerHTML += optionsHTML;
+                    }
 
                 return `<div class="waifu-chat-msg ${msgClass}"><div class="waifu-chat-bubble">${innerHTML}</div></div>`;
             }).join('');
@@ -534,6 +547,18 @@ class Live2DChat {
         }, typingSpeed);
     }
 
+    // 代码标签清洗
+    cleanTextContent(text) {
+        let result = text;
+        if (!this.chatCfg.includeCodeBlocks) {
+            // 清除 Markdown 代码块 ```...```
+            result = result.replace(/```[\s\S]*?```/g, '');
+            // 清除代码标签 {% code ... %} ... {% endcode %} 及其变体
+            result = result.replace(/{%\s*code.*?%}[\s\S]*?{%\s*endcode\s*%}/g, '');
+        }
+        return result.replace(/\s+/g, ' ').trim();
+    }
+
     // 获取当前页面上下文，尝试提取文章正文并清理噪音元素，返回格式化的上下文字符串供系统提示使用，同时支持内容过长的截断提示
     getCurrentPageContext() {
         const articleDOM = document.querySelector(this.chatCfg.pageContextSelector);
@@ -543,10 +568,14 @@ class Live2DChat {
         const title = titleDOM ? titleDOM.innerText.trim() : "当前页面";
 
         const cloneDOM = articleDOM.cloneNode(true);
-        const noiseElements = cloneDOM.querySelectorAll('script, style, noscript, iframe, svg, .post-outdate-notice, .clipboard-btn');
+        let noiseSelectors = 'script, style, noscript, iframe, svg, .post-outdate-notice, .clipboard-btn';
+        if (!this.chatCfg.includeCodeBlocks) {
+            noiseSelectors += ', pre, figure.highlight, div.highlight';
+        }
+        const noiseElements = cloneDOM.querySelectorAll(noiseSelectors);
         noiseElements.forEach(el => el.remove());
+        let pureText = this.cleanTextContent(cloneDOM.textContent);
 
-        let pureText = cloneDOM.textContent.replace(/\s+/g, ' ').trim();
         // 如果纯文本内容过长，进行截断并添加系统提示，告知用户文章内容较多需要自行阅读原文，保持对话的简洁和有效性
         const maxLength = this.chatCfg.pageContextMaxLength;
         if (pureText.length > maxLength) {
